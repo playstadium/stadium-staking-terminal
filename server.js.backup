@@ -1,0 +1,226 @@
+const express = require('express');
+const cors = require('cors');
+const fetch = require('node-fetch');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Configuration
+const CONFIG = {
+    STADIUM_APPCHAIN_ID: 574014,
+    CONTRACT_ADDRESS: '0xF9637B60f27AF139FC46EAa655cFBbe4E731BCdF',
+    API_BASE_URL: 'https://commons.explorer.syndicate.io/api',
+    STAKE_EVENT_TOPIC: '0x8b0e0cd1a643dbca06e3965f856008e9d2348d5ee6b547e4b1e6e25c172da0ca'
+};
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// Cache for API responses
+let cache = {
+    data: null,
+    timestamp: null,
+    ttl: 5 * 60 * 1000 // 5 minutes
+};
+
+// Fetch logs from Blockscout API
+async function fetchLogsFromAPI() {
+    try {
+        const params = new URLSearchParams({
+            module: 'logs',
+            action: 'getLogs',
+            address: CONFIG.CONTRACT_ADDRESS,
+            fromBlock: '0',
+            toBlock: 'latest',
+            topic0: CONFIG.STAKE_EVENT_TOPIC
+        });
+
+        const url = `${CONFIG.API_BASE_URL}?${params}`;
+        console.log('Fetching from:', url);
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.status === '1' && data.result) {
+            return data.result;
+        }
+        throw new Error('Failed to fetch logs from API');
+    } catch (error) {
+        console.error('Error fetching logs:', error);
+        throw error;
+    }
+}
+
+// Process staking data
+function processStakingData(logs) {
+    const stakingData = {};
+    const appchainData = {};
+
+    logs.forEach(log => {
+        try {
+            const topics = log.topics;
+            const data = log.data;
+
+            // Extract values from the event
+            const from = '0x' + topics[1].slice(-40);
+            const toAppchainId = parseInt(topics[2], 16);
+            const amount = parseInt(data, 16) / 1e18;
+
+            // Track by appchain
+            if (!appchainData[toAppchainId]) {
+                appchainData[toAppchainId] = {
+                    total: 0,
+                    stakers: new Set()
+                };
+            }
+            appchainData[toAppchainId].total += amount;
+            appchainData[toAppchainId].stakers.add(from);
+
+            // Track Stadium-specific stakers
+            if (toAppchainId === CONFIG.STADIUM_APPCHAIN_ID) {
+                if (!stakingData[from]) {
+                    stakingData[from] = 0;
+                }
+                stakingData[from] += amount;
+            }
+        } catch (error) {
+            console.error('Error processing log:', error);
+        }
+    });
+
+    // Convert Sets to arrays for JSON serialization
+    Object.keys(appchainData).forEach(key => {
+        appchainData[key].stakers = Array.from(appchainData[key].stakers);
+    });
+
+    return { stakingData, appchainData };
+}
+
+// Calculate statistics
+function calculateStats(stakingData, appchainData) {
+    const stadiumData = appchainData[CONFIG.STADIUM_APPCHAIN_ID] || { 
+        total: 0, 
+        stakers: [] 
+    };
+    
+    const totalStaked = stadiumData.total;
+    const totalStakers = stadiumData.stakers.length;
+
+    // Top 10 stakers
+    const top10 = Object.entries(stakingData)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([address, amount], index) => ({
+            rank: index + 1,
+            address,
+            amount,
+            percentage: (amount / totalStaked) * 100
+        }));
+
+    // Ecosystem rankings
+    const ecosystemRankings = Object.entries(appchainData)
+        .map(([appchainId, data]) => ({
+            appchainId: parseInt(appchainId),
+            total: data.total,
+            stakers: data.stakers.length
+        }))
+        .sort((a, b) => b.total - a.total);
+
+    const totalNetworkStaked = ecosystemRankings.reduce((sum, item) => sum + item.total, 0);
+    const stadiumRank = ecosystemRankings.findIndex(item => item.appchainId === CONFIG.STADIUM_APPCHAIN_ID) + 1;
+    const networkShare = totalStaked > 0 ? (totalStaked / totalNetworkStaked) * 100 : 0;
+
+    return {
+        stadium: {
+            totalStaked,
+            totalStakers,
+            rank: stadiumRank,
+            networkShare
+        },
+        top10,
+        ecosystem: ecosystemRankings.map((item, index) => ({
+            ...item,
+            rank: index + 1,
+            share: (item.total / totalNetworkStaked) * 100
+        }))
+    };
+}
+
+// Main data fetching function
+async function fetchStakingData() {
+    try {
+        console.log('Fetching staking data...');
+        const logs = await fetchLogsFromAPI();
+        console.log(`Fetched ${logs.length} logs`);
+
+        const { stakingData, appchainData } = processStakingData(logs);
+        const stats = calculateStats(stakingData, appchainData);
+        
+        return stats;
+    } catch (error) {
+        console.error('Error fetching staking data:', error);
+        throw error;
+    }
+}
+
+// API Routes
+app.get('/api/stats', async (req, res) => {
+    try {
+        // Check cache
+        const now = Date.now();
+        if (cache.data && cache.timestamp && (now - cache.timestamp < cache.ttl)) {
+            console.log('Returning cached data');
+            return res.json({
+                ...cache.data,
+                cached: true,
+                cacheAge: Math.floor((now - cache.timestamp) / 1000)
+            });
+        }
+
+        // Fetch fresh data
+        const stats = await fetchStakingData();
+        
+        // Update cache
+        cache.data = stats;
+        cache.timestamp = now;
+
+        res.json({
+            ...stats,
+            cached: false,
+            timestamp: now
+        });
+    } catch (error) {
+        console.error('API Error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch staking data',
+            message: error.message 
+        });
+    }
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'ok',
+        uptime: process.uptime(),
+        cache: {
+            hasData: !!cache.data,
+            age: cache.timestamp ? Math.floor((Date.now() - cache.timestamp) / 1000) : null
+        }
+    });
+});
+
+// Serve index.html for root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Start server
+app.listen(PORT, () => {
+    console.log(`🏟️  Stadium Staking Terminal API running on port ${PORT}`);
+    console.log(`📊 API endpoint: http://localhost:${PORT}/api/stats`);
+    console.log(`🌐 Web interface: http://localhost:${PORT}`);
+});
