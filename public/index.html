@@ -3,7 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STADIUM ORBITAL - Staking Infrastructure</title>
+    <title>STADIUM TERMINAL - Staking Infrastructure</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Real-time SYND staking analytics for Stadium appchain. Track staking metrics, node quality, and network performance.">
+    <meta name="keywords" content="stadium, staking, synd, blockchain, appchain, analytics">
+    <meta name="author" content="Stadium League Co.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://terminal.playstadium.gg/">
+    <meta property="og:title" content="STADIUM TERMINAL - Staking Infrastructure">
+    <meta property="og:description" content="Real-time SYND staking analytics for Stadium appchain. Track staking metrics, node quality, and network performance.">
+    <meta property="og:image" content="/og_image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://terminal.playstadium.gg/">
+    <meta name="twitter:title" content="STADIUM TERMINAL - Staking Infrastructure">
+    <meta name="twitter:description" content="Real-time SYND staking analytics for Stadium appchain. Track staking metrics, node quality, and network performance.">
+    <meta name="twitter:image" content="/og_image.png">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -880,7 +902,7 @@
         <!-- Right: Data Panels -->
         <div class="data-panels">
             <div class="header-section">
-                <div class="main-title">Stadium Orbital</div>
+                <div class="main-title">Stadium Terminal</div>
                 <div class="subtitle">Syndicate Commons Network</div>
                 <div>
                     <span class="status-badge" id="statusBadge">
@@ -956,7 +978,7 @@
 
                     <!-- Position Details -->
                     <div>
-                        <div class="section-title">Orbital Position</div>
+                        <div class="section-title">Network Position</div>
                         <div class="mini-stat">
                             <span class="mini-stat-label">Current Rank</span>
                             <span class="mini-stat-value" id="currentRank">#- of -</span>
@@ -1499,7 +1521,7 @@
                 firstStaker: sortedStakers[0]?.address
             });
 
-            // Update orbital position
+            // Update network position
             const totalNetwork = (stats.ecosystem || []).reduce((sum, item) => sum + (item.total || 0), 0);
             const ecosystemLength = (stats.ecosystem || []).length;
             document.getElementById('currentRank').textContent = 
@@ -1656,7 +1678,7 @@
 
         // Initialize
         window.addEventListener('DOMContentLoaded', () => {
-            console.log('Stadium Orbital Terminal initialized');
+            console.log('Stadium Terminal initialized');
             fetchData();
         });
 
