@@ -35,6 +35,67 @@ let priceCache = {
     ttl: 2 * 60 * 1000 // 2 minutes
 };
 
+// Snapshot storage (in-memory, could be moved to file/db later)
+let snapshots = [];
+
+// Check if it's Friday and time to take a snapshot
+function shouldTakeSnapshot() {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 5 = Friday
+    const hour = now.getHours();
+    
+    // Take snapshot on Friday at 12:00 PM (noon)
+    return dayOfWeek === 5 && hour === 12;
+}
+
+// Take a snapshot of top 10
+function takeSnapshot(stats) {
+    const snapshot = {
+        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+        timestamp: Date.now(),
+        totalStaked: stats.stadium.totalStaked,
+        totalStakers: stats.stadium.totalStakers,
+        rank: stats.stadium.rank,
+        networkShare: stats.stadium.networkShare,
+        top10: stats.top10.map(s => ({
+            rank: s.rank,
+            address: s.address,
+            amount: s.amount,
+            percentage: s.percentage,
+            quality: s.quality
+        }))
+    };
+    
+    snapshots.push(snapshot);
+    
+    // Keep only last 52 snapshots (1 year of weekly data)
+    if (snapshots.length > 52) {
+        snapshots = snapshots.slice(-52);
+    }
+    
+    console.log(`📸 Snapshot taken: ${snapshot.date} - ${snapshot.totalStaked.toFixed(2)} SYND staked`);
+    return snapshot;
+}
+
+// Check for snapshot on startup and set up weekly check
+let lastSnapshotCheck = Date.now();
+setInterval(() => {
+    const now = Date.now();
+    // Check every hour
+    if (now - lastSnapshotCheck > 60 * 60 * 1000) {
+        lastSnapshotCheck = now;
+        if (shouldTakeSnapshot()) {
+            // Check if we already took a snapshot today
+            const today = new Date().toISOString().split('T')[0];
+            const alreadySnapped = snapshots.some(s => s.date === today);
+            
+            if (!alreadySnapped && cache.data) {
+                takeSnapshot(cache.data);
+            }
+        }
+    }
+}, 60 * 60 * 1000); // Check every hour
+
 // Fetch SYND price data from GeckoTerminal
 async function fetchSYNDPrice() {
     try {
@@ -112,11 +173,53 @@ async function fetchLogsFromAPI() {
     }
 }
 
+// Calculate epoch number (30-day periods)
+function getEpochNumber(timestamp) {
+    // Assuming epoch 0 starts at a fixed date (e.g., Jan 1, 2024)
+    const EPOCH_START = new Date('2024-01-01').getTime();
+    const EPOCH_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
+    const epoch = Math.floor((timestamp - EPOCH_START) / EPOCH_DURATION);
+    return Math.max(0, epoch);
+}
+
+// Calculate node quality based on epoch consistency
+function calculateNodeQuality(stakingHistory) {
+    if (!stakingHistory || stakingHistory.length === 0) return 0;
+    
+    // Get unique epochs where node was active
+    const activeEpochs = new Set();
+    const currentEpoch = getEpochNumber(Date.now());
+    
+    stakingHistory.forEach(entry => {
+        const epoch = getEpochNumber(entry.timestamp);
+        if (entry.amount > 0) {
+            activeEpochs.add(epoch);
+        }
+    });
+    
+    // Calculate quality: percentage of recent epochs where node was active
+    // Look at last 6 epochs (6 months)
+    const recentEpochs = Math.min(6, currentEpoch + 1);
+    const consistency = activeEpochs.size / recentEpochs;
+    
+    // Quality score: 0-100, based on consistency and total epochs active
+    const qualityScore = Math.min(100, Math.round(consistency * 100));
+    
+    return {
+        score: qualityScore,
+        activeEpochs: activeEpochs.size,
+        totalEpochs: recentEpochs,
+        consistency: consistency,
+        epochs: Array.from(activeEpochs).sort((a, b) => b - a)
+    };
+}
+
 // Process staking data
 function processStakingData(logs) {
     const stakingData = {};
     const appchainData = {};
     const dailyTrends = {};
+    const stakingHistory = {}; // Track history per address
 
     logs.forEach(log => {
         try {
@@ -178,6 +281,17 @@ function processStakingData(logs) {
                         stakingData[from] = 0;
                     }
                     stakingData[from] += amount;
+                    
+                    // Track staking history
+                    if (!stakingHistory[from]) {
+                        stakingHistory[from] = [];
+                    }
+                    stakingHistory[from].push({
+                        timestamp,
+                        amount: stakingData[from], // Current total after this stake
+                        type: 'stake',
+                        txHash: log.transactionHash
+                    });
                 }
                 
             } else if (!isStake && fromAppchainId) {
@@ -196,6 +310,17 @@ function processStakingData(logs) {
                         stakingData[from] = 0;
                     }
                     stakingData[from] -= amount;
+                    
+                    // Track unstaking history
+                    if (!stakingHistory[from]) {
+                        stakingHistory[from] = [];
+                    }
+                    stakingHistory[from].push({
+                        timestamp,
+                        amount: Math.max(0, stakingData[from]), // Current total after this unstake
+                        type: 'unstake',
+                        txHash: log.transactionHash
+                    });
                     
                     // Remove staker if they have no remaining stake
                     if (stakingData[from] <= 0) {
@@ -277,11 +402,11 @@ function processStakingData(logs) {
         dailyTrends[date].totalStakers = Object.keys(stakerTracker).length;
     });
 
-    return { stakingData, appchainData, dailyTrends };
+    return { stakingData, appchainData, dailyTrends, stakingHistory };
 }
 
 // Calculate statistics
-function calculateStats(stakingData, appchainData) {
+function calculateStats(stakingData, appchainData, stakingHistory = {}) {
     const stadiumData = appchainData[CONFIG.STADIUM_APPCHAIN_ID] || { 
         total: 0, 
         stakers: [] 
@@ -290,16 +415,36 @@ function calculateStats(stakingData, appchainData) {
     const totalStaked = stadiumData.total;
     const totalStakers = stadiumData.stakers.length;
 
-    // Top 10 stakers
+    // Top 10 stakers with quality scores
     const top10 = Object.entries(stakingData)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(([address, amount], index) => ({
-            rank: index + 1,
-            address,
-            amount,
-            percentage: (amount / totalStaked) * 100
-        }));
+        .map(([address, amount], index) => {
+            const history = stakingHistory[address] || [];
+            const quality = calculateNodeQuality(history);
+            return {
+                rank: index + 1,
+                address,
+                amount,
+                percentage: (amount / totalStaked) * 100,
+                quality: quality
+            };
+        });
+    
+    // All stakers with quality (for node details)
+    const allStakers = Object.entries(stakingData)
+        .map(([address, amount]) => {
+            const history = stakingHistory[address] || [];
+            const quality = calculateNodeQuality(history);
+            return {
+                address,
+                amount,
+                percentage: (amount / totalStaked) * 100,
+                quality: quality,
+                history: history.slice(-20) // Last 20 transactions
+            };
+        })
+        .sort((a, b) => b.amount - a.amount);
 
     // Ecosystem rankings
     const ecosystemRankings = Object.entries(appchainData)
@@ -314,6 +459,17 @@ function calculateStats(stakingData, appchainData) {
     const stadiumRank = ecosystemRankings.findIndex(item => item.appchainId === CONFIG.STADIUM_APPCHAIN_ID) + 1;
     const networkShare = totalStaked > 0 ? (totalStaked / totalNetworkStaked) * 100 : 0;
 
+    // Define goals/milestones
+    const goals = [
+        { amount: 250000, label: '250K SYND', reached: totalStaked >= 250000 },
+        { amount: 500000, label: '500K SYND', reached: totalStaked >= 500000 },
+        { amount: 1000000, label: '1M SYND', reached: totalStaked >= 1000000 }
+    ];
+    
+    // Find current goal (next unreached milestone)
+    const currentGoal = goals.find(g => !g.reached) || goals[goals.length - 1];
+    const progressToGoal = currentGoal ? (totalStaked / currentGoal.amount) * 100 : 100;
+
     return {
         stadium: {
             totalStaked,
@@ -322,11 +478,17 @@ function calculateStats(stakingData, appchainData) {
             networkShare
         },
         top10,
+        allStakers, // Include all stakers for node details
         ecosystem: ecosystemRankings.map((item, index) => ({
             ...item,
             rank: index + 1,
             share: (item.total / totalNetworkStaked) * 100
-        }))
+        })),
+        goals: {
+            current: currentGoal,
+            all: goals,
+            progress: Math.min(100, progressToGoal)
+        }
     };
 }
 
@@ -337,8 +499,8 @@ async function fetchStakingData() {
         const logs = await fetchLogsFromAPI();
         console.log(`Fetched ${logs.length} logs`);
 
-        const { stakingData, appchainData, dailyTrends } = processStakingData(logs);
-        const stats = calculateStats(stakingData, appchainData);
+        const { stakingData, appchainData, dailyTrends, stakingHistory } = processStakingData(logs);
+        const stats = calculateStats(stakingData, appchainData, stakingHistory);
         
         // Fetch SYND price data
         let priceData = null;
@@ -376,6 +538,15 @@ app.get('/api/stats', async (req, res) => {
         // Update cache
         cache.data = stats;
         cache.timestamp = now;
+        
+        // Check if we should take a snapshot
+        if (shouldTakeSnapshot()) {
+            const today = new Date().toISOString().split('T')[0];
+            const alreadySnapped = snapshots.some(s => s.date === today);
+            if (!alreadySnapped) {
+                takeSnapshot(stats);
+            }
+        }
 
         res.json({
             ...stats,
@@ -386,6 +557,88 @@ app.get('/api/stats', async (req, res) => {
         console.error('API Error:', error);
         res.status(500).json({ 
             error: 'Failed to fetch staking data',
+            message: error.message 
+        });
+    }
+});
+
+// Node details endpoint
+app.get('/api/node/:address', async (req, res) => {
+    try {
+        const address = req.params.address.toLowerCase();
+        console.log(`Looking up node: ${address}`);
+        
+        // Check cache first
+        const now = Date.now();
+        if (cache.data && cache.timestamp && (now - cache.timestamp < cache.ttl)) {
+            // Try allStakers first
+            let node = cache.data.allStakers?.find(s => 
+                s.address.toLowerCase() === address
+            );
+            
+            // Fallback to top10 if not in allStakers
+            if (!node) {
+                node = cache.data.top10?.find(s => 
+                    s.address.toLowerCase() === address
+                );
+                if (node) {
+                    // Add basic quality if missing
+                    if (!node.quality) {
+                        node.quality = { score: 0, activeEpochs: 0, totalEpochs: 0 };
+                    }
+                    if (!node.history) {
+                        node.history = [];
+                    }
+                }
+            }
+            
+            if (node) {
+                console.log(`Node found in cache: ${address}`);
+                return res.json({ ...node, cached: true });
+            }
+        }
+
+        // Fetch fresh data if not in cache or cache expired
+        console.log('Fetching fresh data for node lookup...');
+        const stats = await fetchStakingData();
+        
+        // Try allStakers first
+        let node = stats.allStakers?.find(s => 
+            s.address.toLowerCase() === address
+        );
+        
+        // Fallback to top10 if not in allStakers
+        if (!node) {
+            node = stats.top10?.find(s => 
+                s.address.toLowerCase() === address
+            );
+            if (node) {
+                // Add basic quality if missing
+                if (!node.quality) {
+                    node.quality = { score: 0, activeEpochs: 0, totalEpochs: 0 };
+                }
+                if (!node.history) {
+                    node.history = [];
+                }
+            }
+        }
+        
+        if (node) {
+            console.log(`Node found in fresh data: ${address}`);
+            res.json({ ...node, cached: false });
+        } else {
+            console.log(`Node not found: ${address}`);
+            console.log('Available addresses in allStakers:', stats.allStakers?.slice(0, 5).map(s => s.address));
+            console.log('Available addresses in top10:', stats.top10?.slice(0, 5).map(s => s.address));
+            res.status(404).json({ 
+                error: 'Node not found',
+                address: req.params.address
+            });
+        }
+    } catch (error) {
+        console.error('Node API Error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch node data',
             message: error.message 
         });
     }
@@ -458,6 +711,26 @@ app.get('/api/price', async (req, res) => {
     }
 });
 
+// Snapshots endpoint
+app.get('/api/snapshots', (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 52;
+        const sortedSnapshots = [...snapshots].sort((a, b) => 
+            new Date(b.date) - new Date(a.date)
+        );
+        res.json({
+            snapshots: sortedSnapshots.slice(0, limit),
+            total: snapshots.length
+        });
+    } catch (error) {
+        console.error('Snapshots API Error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch snapshots',
+            message: error.message 
+        });
+    }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ 
@@ -470,6 +743,10 @@ app.get('/api/health', (req, res) => {
         priceCache: {
             hasData: !!priceCache.data,
             age: priceCache.timestamp ? Math.floor((Date.now() - priceCache.timestamp) / 1000) : null
+        },
+        snapshots: {
+            count: snapshots.length,
+            latest: snapshots.length > 0 ? snapshots[snapshots.length - 1].date : null
         }
     });
 });
