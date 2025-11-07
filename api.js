@@ -8,6 +8,13 @@ const CONFIG = {
     STAKE_EVENT_TOPIC: '0x8b0e0cd1a643dbca06e3965f856008e9d2348d5ee6b547e4b1e6e25c172da0ca'
 };
 
+const EPOCH_INFO = {
+    number: 1,
+    durationDays: 30,
+    totalEmissionPerEpoch: 1666667,
+    appchainPoolShare: 0.40
+};
+
 // Cache
 let cache = {
     data: null,
@@ -107,6 +114,11 @@ function calculateStats(stakingData, appchainData) {
     const stadiumRank = ecosystemRankings.findIndex(item => item.appchainId === CONFIG.STADIUM_APPCHAIN_ID) + 1;
     const networkShare = totalStaked > 0 ? (totalStaked / totalNetworkStaked) * 100 : 0;
 
+    const appchainPoolEmissionPerEpoch = EPOCH_INFO.totalEmissionPerEpoch * EPOCH_INFO.appchainPoolShare;
+    const stadiumEmissionShare = networkShare / 100;
+    const stadiumEmissionPerEpoch = appchainPoolEmissionPerEpoch * stadiumEmissionShare;
+    const stadiumEmissionPerDay = stadiumEmissionPerEpoch / EPOCH_INFO.durationDays;
+
     return {
         stadium: {
             totalStaked,
@@ -118,8 +130,18 @@ function calculateStats(stakingData, appchainData) {
         ecosystem: ecosystemRankings.map((item, index) => ({
             ...item,
             rank: index + 1,
-            share: (item.total / totalNetworkStaked) * 100
-        }))
+            share: totalNetworkStaked > 0 ? (item.total / totalNetworkStaked) * 100 : 0
+        })),
+        emissions: {
+            epochNumber: EPOCH_INFO.number,
+            epochDurationDays: EPOCH_INFO.durationDays,
+            totalEmissionPerEpoch: EPOCH_INFO.totalEmissionPerEpoch,
+            appchainPoolShare: EPOCH_INFO.appchainPoolShare,
+            appchainPoolEmissionPerEpoch,
+            stadiumShareOfPool: stadiumEmissionShare,
+            stadiumEmissionPerEpoch,
+            stadiumEmissionPerDay
+        }
     };
 }
 

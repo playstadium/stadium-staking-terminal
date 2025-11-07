@@ -1140,11 +1140,13 @@
                             <div class="metric-card">
                                 <div class="metric-card-label">Emission / Epoch</div>
                                 <div class="metric-card-value" id="emissionEpoch">0</div>
+                                <div class="stat-secondary" id="emissionEpochUSD" style="display: none;"></div>
                                 <div class="metric-card-subvalue" id="emissionEpochDetail">Epoch -- · Appchain pool</div>
                         </div>
                             <div class="metric-card">
                                 <div class="metric-card-label">Emission / Day</div>
                                 <div class="metric-card-value" id="emissionDay">0</div>
+                                <div class="stat-secondary" id="emissionDayUSD" style="display: none;"></div>
                                 <div class="metric-card-subvalue" id="emissionDayDetail">Based on 30-day epoch</div>
                             </div>
                         </div>
@@ -1874,24 +1876,58 @@
             const emissions = stats.emissions || {};
             const emissionPerEpoch = typeof emissions.stadiumEmissionPerEpoch === 'number' ? emissions.stadiumEmissionPerEpoch : 0;
             const emissionPerDay = typeof emissions.stadiumEmissionPerDay === 'number' ? emissions.stadiumEmissionPerDay : 0;
+            const emissionPerEpochUSD = typeof emissions.stadiumEmissionPerEpochUSD === 'number' ? emissions.stadiumEmissionPerEpochUSD : 0;
+            const emissionPerDayUSD = typeof emissions.stadiumEmissionPerDayUSD === 'number' ? emissions.stadiumEmissionPerDayUSD : 0;
             const epochLabel = emissions.epochNumber ? `Epoch ${emissions.epochNumber}` : 'Epoch --';
             const poolSharePct = typeof emissions.appchainPoolShare === 'number' ? (emissions.appchainPoolShare * 100).toFixed(0) : null;
             const poolLabel = poolSharePct ? `${poolSharePct}% appchain pool` : 'Appchain pool';
             const epochDuration = emissions.epochDurationDays || 30;
 
             const emissionEpochEl = document.getElementById('emissionEpoch');
+            const emissionEpochUSDEl = document.getElementById('emissionEpochUSD');
             const emissionEpochDetailEl = document.getElementById('emissionEpochDetail');
             const emissionDayEl = document.getElementById('emissionDay');
+            const emissionDayUSDEl = document.getElementById('emissionDayUSD');
             const emissionDayDetailEl = document.getElementById('emissionDayDetail');
 
             if (emissionEpochEl && emissionEpochDetailEl) {
                 emissionEpochEl.textContent = `${formatNumber(emissionPerEpoch)} SYND`;
                 emissionEpochDetailEl.textContent = `${epochLabel} · ${poolLabel}`;
+                
+                // Add USD value if available (styled like totalStakedSubtitle)
+                if (emissionEpochUSDEl && emissionPerEpochUSD > 0) {
+                    let usdFormatted;
+                    if (emissionPerEpochUSD >= 1000000) {
+                        usdFormatted = `$${(emissionPerEpochUSD / 1000000).toFixed(2)}M`;
+                    } else if (emissionPerEpochUSD >= 1000) {
+                        usdFormatted = `$${(emissionPerEpochUSD / 1000).toFixed(0)}K`;
+                    } else {
+                        usdFormatted = `$${emissionPerEpochUSD.toFixed(0)}`;
+                    }
+                    emissionEpochUSDEl.textContent = `(${usdFormatted} USD)`;
+                    emissionEpochUSDEl.style.display = 'block';
+                } else if (emissionEpochUSDEl) {
+                    emissionEpochUSDEl.style.display = 'none';
+                }
             }
 
             if (emissionDayEl && emissionDayDetailEl) {
                 emissionDayEl.textContent = `${formatNumber(emissionPerDay)} SYND`;
                 emissionDayDetailEl.textContent = `Based on ${epochDuration}-day epoch`;
+                
+                // Add USD value if available (styled like totalStakedSubtitle)
+                if (emissionDayUSDEl && emissionPerDayUSD > 0) {
+                    let usdFormatted;
+                    if (emissionPerDayUSD >= 1000) {
+                        usdFormatted = `$${(emissionPerDayUSD / 1000).toFixed(0)}K`;
+                    } else {
+                        usdFormatted = `$${emissionPerDayUSD.toFixed(0)}`;
+                    }
+                    emissionDayUSDEl.textContent = `(${usdFormatted} USD/day)`;
+                    emissionDayUSDEl.style.display = 'block';
+                } else if (emissionDayUSDEl) {
+                    emissionDayUSDEl.style.display = 'none';
+                }
             }
 
             // Update node grid with clickable nodes and quality indicators

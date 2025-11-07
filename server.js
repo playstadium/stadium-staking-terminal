@@ -16,6 +16,13 @@ const CONFIG = {
     GECKO_TERMINAL_API: 'https://api.geckoterminal.com/api/v2'
 };
 
+const EPOCH_INFO = {
+    number: 1,
+    durationDays: 30,
+    totalEmissionPerEpoch: 1666667,
+    appchainPoolShare: 0.40
+};
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -459,6 +466,11 @@ function calculateStats(stakingData, appchainData, stakingHistory = {}) {
     const stadiumRank = ecosystemRankings.findIndex(item => item.appchainId === CONFIG.STADIUM_APPCHAIN_ID) + 1;
     const networkShare = totalStaked > 0 ? (totalStaked / totalNetworkStaked) * 100 : 0;
 
+    const appchainPoolEmissionPerEpoch = EPOCH_INFO.totalEmissionPerEpoch * EPOCH_INFO.appchainPoolShare;
+    const stadiumEmissionShare = networkShare / 100;
+    const stadiumEmissionPerEpoch = appchainPoolEmissionPerEpoch * stadiumEmissionShare;
+    const stadiumEmissionPerDay = stadiumEmissionPerEpoch / EPOCH_INFO.durationDays;
+
     // Define goals/milestones
     const goals = [
         { amount: 250000, label: '250K SYND', reached: totalStaked >= 250000 },
@@ -482,12 +494,22 @@ function calculateStats(stakingData, appchainData, stakingHistory = {}) {
         ecosystem: ecosystemRankings.map((item, index) => ({
             ...item,
             rank: index + 1,
-            share: (item.total / totalNetworkStaked) * 100
+            share: totalNetworkStaked > 0 ? (item.total / totalNetworkStaked) * 100 : 0
         })),
         goals: {
             current: currentGoal,
             all: goals,
             progress: Math.min(100, progressToGoal)
+        },
+        emissions: {
+            epochNumber: EPOCH_INFO.number,
+            epochDurationDays: EPOCH_INFO.durationDays,
+            totalEmissionPerEpoch: EPOCH_INFO.totalEmissionPerEpoch,
+            appchainPoolShare: EPOCH_INFO.appchainPoolShare,
+            appchainPoolEmissionPerEpoch,
+            stadiumShareOfPool: stadiumEmissionShare,
+            stadiumEmissionPerEpoch,
+            stadiumEmissionPerDay
         }
     };
 }
@@ -507,6 +529,14 @@ async function fetchStakingData() {
         try {
             priceData = await fetchSYNDPrice();
             console.log('SYND price fetched:', priceData);
+            
+            // Calculate USD values for emissions if price is available
+            if (priceData && priceData.price > 0 && stats.emissions) {
+                const syndPrice = priceData.price;
+                stats.emissions.stadiumEmissionPerEpochUSD = stats.emissions.stadiumEmissionPerEpoch * syndPrice;
+                stats.emissions.stadiumEmissionPerDayUSD = stats.emissions.stadiumEmissionPerDay * syndPrice;
+                stats.emissions.stadiumEmissionPerMonthUSD = stats.emissions.stadiumEmissionPerEpochUSD; // Per epoch = per month
+            }
         } catch (priceError) {
             console.warn('Could not fetch SYND price:', priceError.message);
         }
