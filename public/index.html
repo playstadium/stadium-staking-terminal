@@ -61,6 +61,8 @@
             --text-muted: #6B7580;
             --accent: #FFFFFF;
             --accent-subtle: rgba(255, 255, 255, 0.1);
+            --trend-up: #7feac3;
+            --trend-down: #ff7a7a;
         }
 
         body {
@@ -397,6 +399,16 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 16px;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .metric-card.interactive {
+            cursor: pointer;
+        }
+
+        .metric-card.interactive:hover {
+            border-color: var(--accent-subtle);
+            transform: translateY(-2px);
         }
 
         .metric-card-label {
@@ -411,6 +423,189 @@
             font-size: 20px;
             font-weight: 600;
             color: var(--text-primary);
+        }
+
+        .metric-trend {
+            margin-top: 6px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+        }
+
+        .metric-trend.trend-up {
+            color: var(--trend-up);
+        }
+
+        .metric-trend.trend-down {
+            color: var(--trend-down);
+        }
+
+        .metric-modal-section {
+            margin-bottom: 28px;
+        }
+
+        .modal-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .modal-summary-grid .summary-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .modal-summary-grid .summary-value {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-summary-grid .summary-subtext {
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .scenario-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .scenario-controls label {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        #rankScenarioSlider {
+            width: 100%;
+        }
+
+        .scenario-inputs {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .scenario-inputs input[type="number"] {
+            width: 140px;
+            padding: 8px 10px;
+            background: var(--base-dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .scenario-quick-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .scenario-quick-buttons button {
+            padding: 6px 10px;
+            background: var(--base-dark);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .scenario-quick-buttons button:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        #rankTableContainer table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        #rankTableContainer th,
+        #rankTableContainer td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        #rankTableContainer th {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        #rankTableContainer tr.highlight {
+            background: rgba(127, 234, 195, 0.08);
+        }
+
+        #stakeCohortTable table,
+        #networkShareTable table,
+        #topStakerDistribution table,
+        #emissionAllocationTable table,
+        #tournamentProjectionTable table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        #stakeCohortTable th, #stakeCohortTable td,
+        #networkShareTable th, #networkShareTable td,
+        #topStakerDistribution th, #topStakerDistribution td,
+        #emissionAllocationTable th, #emissionAllocationTable td,
+        #tournamentProjectionTable th, #tournamentProjectionTable td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #emissionAllocationTable th,
+        #tournamentProjectionTable th {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .summary-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: rgba(127, 234, 195, 0.12);
+            color: var(--trend-up);
+            border: 1px solid rgba(127, 234, 195, 0.45);
+        }
+
+        .allocation-label {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .allocation-bar-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(20, 28, 34, 0.9);
+            overflow: hidden;
+        }
+
+        .allocation-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, rgba(64, 197, 255, 0.8), rgba(76, 230, 182, 0.8));
         }
 
         .metric-card-subvalue {
@@ -585,12 +780,34 @@
         }
 
         .chart-container {
-            background: var(--base);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
+            position: relative;
+            background: rgba(14, 19, 24, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 22px;
             margin-bottom: 30px;
             height: 280px;
+            backdrop-filter: blur(6px);
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 14px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .chart-legend .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-legend .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
         }
 
         .stadium-stage-indicator {
@@ -965,7 +1182,7 @@
                 grid-template-columns: 1fr;
                 gap: 12px;
             }
-            
+
             .node-grid {
                 grid-template-columns: repeat(6, 1fr);
                 gap: 6px;
@@ -974,7 +1191,7 @@
             .node {
                 font-size: 9px;
             }
-            
+
             .stat-value {
                 font-size: 24px;
             }
@@ -1015,7 +1232,7 @@
 </head>
 <body>
     <div class="timestamp" id="timestamp">00:00:00</div>
-    
+
     <div class="container">
         <!-- Left: Isometric View -->
         <div class="iso-container">
@@ -1085,35 +1302,35 @@
                         <span class="status-dot"></span>
                         <span id="statusText">INITIALIZING</span>
                     </span>
+                </div>
             </div>
-        </div>
 
-        <!-- Loading State -->
+            <!-- Loading State -->
             <div id="loadingState" class="loading-state">
-            <div class="loading-spinner"></div>
-            <div>INITIALIZING DATA STREAMS</div>
-        </div>
+                <div class="loading-spinner"></div>
+                <div>INITIALIZING DATA STREAMS</div>
+            </div>
 
-        <!-- Error State -->
+            <!-- Error State -->
             <div id="errorState" class="error-message" style="display: none;">
-            <strong>SYSTEM ERROR:</strong> <span id="errorMessage"></span>
-        </div>
+                <strong>SYSTEM ERROR:</strong> <span id="errorMessage"></span>
+            </div>
 
-        <!-- Main Content -->
-        <div id="mainContent" style="display: none;">
+            <!-- Main Content -->
+            <div id="mainContent" style="display: none;">
                 <div class="stats-section">
                     <!-- Total Staked -->
                     <div class="stat-group">
                         <div class="stat-item">
                             <div class="stat-label">Total Staked</div>
-                        <div class="stat-value" id="totalStaked">0</div>
+                            <div class="stat-value" id="totalStaked">0</div>
                             <div class="stat-secondary" id="totalStakedSubtitle">SYND locked in network</div>
                             <div class="progress-bar">
                                 <div class="progress-fill" id="goalProgress" style="width: 0%"></div>
-                    </div>
+                            </div>
                             <div class="goal-label" id="goalLabel">Goal: --</div>
+                        </div>
                     </div>
-                </div>
 
                     <div class="divider"></div>
 
@@ -1121,29 +1338,33 @@
                     <div>
                         <div class="section-title">Network Metrics</div>
                         <div class="metric-grid">
-                            <div class="metric-card">
+                            <div class="metric-card interactive" data-metric="activeNodes">
                                 <div class="metric-card-label">Active Nodes</div>
                                 <div class="metric-card-value" id="stakerCount">0</div>
-                        </div>
-                            <div class="metric-card">
+                                <div class="metric-trend" id="stakerCountTrend">—</div>
+                            </div>
+                            <div class="metric-card interactive" data-metric="avgPerNode">
                                 <div class="metric-card-label">Avg Per Node</div>
                                 <div class="metric-card-value" id="avgPerNode">0</div>
-                        </div>
-                            <div class="metric-card">
+                                <div class="metric-trend" id="avgPerNodeTrend">—</div>
+                            </div>
+                            <div class="metric-card interactive" data-metric="networkShare">
                                 <div class="metric-card-label">Network Share</div>
                                 <div class="metric-card-value" id="networkShare">0%</div>
-                    </div>
-                            <div class="metric-card">
+                                <div class="metric-trend" id="networkShareTrend">—</div>
+                            </div>
+                            <div class="metric-card interactive" data-metric="rank">
                                 <div class="metric-card-label">Rank</div>
                                 <div class="metric-card-value" id="rank">#-</div>
-                </div>
-                            <div class="metric-card">
+                                <div class="metric-trend" id="rankTrend">—</div>
+                            </div>
+                            <div class="metric-card interactive" data-metric="emissions">
                                 <div class="metric-card-label">Emission / Epoch</div>
                                 <div class="metric-card-value" id="emissionEpoch">0</div>
                                 <div class="stat-secondary" id="emissionEpochUSD" style="display: none;"></div>
                                 <div class="metric-card-subvalue" id="emissionEpochDetail">Epoch -- · Appchain pool</div>
                         </div>
-                            <div class="metric-card">
+                            <div class="metric-card interactive" data-metric="emissions">
                                 <div class="metric-card-label">Emission / Day</div>
                                 <div class="metric-card-value" id="emissionDay">0</div>
                                 <div class="stat-secondary" id="emissionDayUSD" style="display: none;"></div>
@@ -1151,7 +1372,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="divider"></div>
 
                     <!-- Node Status -->
@@ -1161,7 +1382,7 @@
                             <!-- Generated by JS -->
                         </div>
                     </div>
-                    
+
                     <div class="divider"></div>
 
                     <!-- Position Details -->
@@ -1178,8 +1399,8 @@
                         <div class="mini-stat">
                             <span class="mini-stat-label">Last Updated</span>
                             <span class="mini-stat-value" id="lastUpdated">--:--:--</span>
+                        </div>
                     </div>
-                </div>
 
                     <div class="divider"></div>
 
@@ -1188,8 +1409,8 @@
                         <div class="section-title">Primary Nodes</div>
                         <div class="staker-list" id="topStakers">
                             <!-- Generated by JS -->
-            </div>
-            </div>
+                        </div>
+                    </div>
 
                     <div class="divider"></div>
 
@@ -1202,7 +1423,7 @@
                         <div id="snapshotsList" style="max-height: 200px; overflow-y: auto;">
                             <!-- Generated by JS -->
                         </div>
-        </div>
+                    </div>
 
                     <!-- Mobile Charts Section -->
                     <div id="mobileCharts" style="display: none;">
@@ -1211,7 +1432,7 @@
                             <div class="section-title">Analytics</div>
                             <div class="chart-container" style="margin-top: 16px;">
                                 <canvas id="mobileTotalStakedChart"></canvas>
-            </div>
+                            </div>
                             <div class="chart-container">
                                 <canvas id="mobileDailyFlowChart"></canvas>
                             </div>
@@ -1233,7 +1454,19 @@
                 <button class="modal-close" onclick="closeNodeModal()">CLOSE</button>
             </div>
             <div class="modal-body" id="nodeModalBody">
-                        <!-- Populated by JS -->
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="metricModal" onclick="closeMetricModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="metricModalTitle">Metric Details</div>
+                <button class="modal-close" onclick="closeMetricModal()">CLOSE</button>
+            </div>
+            <div class="modal-body" id="metricModalBody">
+                <!-- Populated dynamically -->
             </div>
         </div>
     </div>
@@ -1248,12 +1481,117 @@
             API_ENDPOINT: '/api/stats'
         };
 
+        const CHART_PALETTE = {
+            primary: '#7FEAC3',
+            secondary: '#76F6FF',
+            tertiary: '#F9D66B',
+            accent: '#FFFFFF',
+            muted: 'rgba(255,255,255,0.08)'
+        };
+
+        if (window.Chart) {
+            Chart.defaults.font.family = 'Geist Mono, SFMono-Regular, Menlo, monospace';
+            Chart.defaults.color = '#B0B8C0';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.06)';
+            Chart.defaults.plugins.legend.display = false;
+            Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 20, 25, 0.92)';
+            Chart.defaults.plugins.tooltip.borderColor = 'rgba(255,255,255,0.12)';
+            Chart.defaults.plugins.tooltip.borderWidth = 1;
+            Chart.defaults.plugins.tooltip.padding = 10;
+        }
+
+        const donutCenterText = {
+            id: 'donutCenterText',
+            afterDraw(chart, args, opts) {
+                if (!opts || !opts.text) return;
+                const { ctx } = chart;
+                const { width } = chart;
+                const height = chart.chartArea.bottom - chart.chartArea.top;
+                ctx.save();
+                ctx.font = `${opts.fontSize || 18}px Geist Mono, monospace`;
+                ctx.fillStyle = opts.color || '#FFFFFF';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(opts.text, width / 2, chart.chartArea.top + height / 2 - (opts.offsetY || 0));
+                if (opts.subtext) {
+                    ctx.font = `${opts.subFontSize || 11}px Geist Mono, monospace`;
+                    ctx.fillStyle = opts.subColor || '#6B7580';
+                    ctx.fillText(opts.subtext, width / 2, chart.chartArea.top + height / 2 + (opts.subOffsetY || 18));
+                }
+                ctx.restore();
+            }
+        };
+
+        if (window.Chart) {
+            Chart.register(donutCenterText);
+        }
+
         let refreshTimer;
         let currentStats = null;
         let charts = {};
         let allStakersData = [];
         let nodeMarkers = [];
         let hoveredMarker = null;
+        let baselineMetrics = null;
+        let metricModalState = {
+            current: null,
+            charts: {}
+        };
+
+        const EMISSION_ALLOCATIONS = [
+            { key: 'treasury', label: 'Stadium Treasury', percent: 0.25 },
+            { key: 'tournaments', label: 'Tournament Funding', percent: 0.45 },
+            { key: 'developer', label: 'Developer Incentives', percent: 0.25 },
+            { key: 'gas', label: 'Gas Subsidies', percent: 0.05 }
+        ];
+
+        const TOURNAMENT_TIERS = [
+            { key: 'casual', label: 'Casual', min: 100, max: 500 },
+            { key: 'amateur', label: 'Amateur', min: 500, max: 3000 },
+            { key: 'semiPro', label: 'Semi-Pro', min: 3000, max: 10000 },
+            { key: 'pro', label: 'Pro', min: 10000, max: 20000 }
+        ];
+
+        // Chart.js theme customization for minimal sci-fi aesthetic
+        let donutCenterPlugin = null;
+
+        if (window.Chart) {
+            Chart.defaults.color = 'rgba(176, 184, 192, 0.85)';
+            Chart.defaults.font.family = '"Geist Mono", "SF Mono", "Monaco", monospace';
+            Chart.defaults.font.size = 11;
+            Chart.defaults.plugins.legend.display = false;
+            Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 20, 25, 0.92)';
+            Chart.defaults.plugins.tooltip.borderWidth = 0;
+            Chart.defaults.plugins.tooltip.titleColor = '#FFFFFF';
+            Chart.defaults.plugins.tooltip.bodyColor = 'rgba(176, 184, 192, 0.9)';
+            Chart.defaults.elements.point.radius = 0;
+            Chart.defaults.elements.line.borderWidth = 2;
+            Chart.defaults.elements.arc.borderWidth = 1.5;
+
+            donutCenterPlugin = {
+                id: 'donutCenter',
+                afterDraw(chart, args, pluginOptions) {
+                    const opts = pluginOptions || chart.options.plugins.donutCenter;
+                    if (!opts || !opts.value) return;
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta || !meta.data || !meta.data.length) return;
+                    const { x, y } = meta.data[0];
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(118, 246, 255, 0.95)';
+                    ctx.font = '600 18px "Geist Mono", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(opts.value, x, y - 6);
+                    ctx.fillStyle = 'rgba(176, 184, 192, 0.6)';
+                    ctx.font = '10px "Geist Mono", monospace';
+                    ctx.fillText(opts.label || '', x, y + 10);
+                    ctx.restore();
+                }
+            };
+
+            Chart.register(donutCenterPlugin);
+        }
 
         // Update timestamp
         function updateTimestamp() {
@@ -1277,9 +1615,1101 @@
             });
         }
 
+        function formatUSD(value) {
+            const numeric = Number.isFinite(value) ? value : 0;
+            const sign = numeric < 0 ? '-' : '';
+            const abs = Math.abs(numeric);
+            let formatted;
+            if (abs >= 1000000) {
+                formatted = `${(abs / 1000000).toFixed(2)}M`;
+            } else if (abs >= 1000) {
+                formatted = `${(abs / 1000).toFixed(1)}K`;
+            } else {
+                formatted = abs.toFixed(0);
+            }
+            return `${sign}$${formatted}`;
+        }
+
         function formatAddress(address) {
             if (!address) return 'UNKNOWN';
             return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+        }
+
+        function computeBaselineMetrics(stats) {
+            const trends = stats.trends || {};
+            const dates = Object.keys(trends).sort();
+            if (dates.length < 2) {
+                return null;
+            }
+
+            const baselineDate = dates[dates.length - 2];
+            const baseline = trends[baselineDate];
+            if (!baseline) return null;
+
+            const totalStaked = typeof baseline.totalStaked === 'number' ? baseline.totalStaked : null;
+            const totalStakers = typeof baseline.totalStakers === 'number' ? baseline.totalStakers : null;
+            const avgPerNode = totalStakers && totalStakers > 0 && totalStaked !== null
+                ? totalStaked / totalStakers
+                : null;
+
+            return {
+                date: baselineDate,
+                totalStaked,
+                totalStakers,
+                avgPerNode
+            };
+        }
+
+        function formatBaselineLabel(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            if (Number.isNaN(date.getTime())) {
+                return `vs ${dateString}`;
+            }
+            return `vs ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        }
+
+        function setTrend(element, currentValue, previousValue, options = {}) {
+            if (!element) return;
+
+            const {
+                betterDirection = 'up',
+                format = 'percent',
+                unit = '',
+                decimals = format === 'percent' ? 1 : 0,
+                threshold,
+                referenceLabel
+            } = options;
+
+            element.className = 'metric-trend';
+            element.textContent = '—';
+            element.title = '';
+
+            if (typeof previousValue !== 'number' || isNaN(previousValue)) {
+                return;
+            }
+
+            if (currentValue === previousValue) {
+                return;
+            }
+
+            let changeValue;
+
+            if (format === 'percent') {
+                if (Math.abs(previousValue) < 1e-6) {
+                    if (Math.abs(currentValue) < 1e-6) {
+                        return;
+                    }
+
+                    const improved = betterDirection === 'up'
+                        ? currentValue > previousValue
+                        : betterDirection === 'down'
+                            ? currentValue < previousValue
+                            : currentValue > previousValue;
+
+                    const arrow = improved ? '▲' : '▼';
+                    element.className = `metric-trend ${improved ? 'trend-up' : 'trend-down'}`;
+                    element.textContent = `${arrow} NEW${referenceLabel ? ` ${referenceLabel}` : ''}`;
+                    element.title = `Previous: ${previousValue}, Current: ${currentValue}${referenceLabel ? ` (${referenceLabel})` : ''}`;
+                    return;
+                }
+
+                changeValue = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+            } else {
+                changeValue = currentValue - previousValue;
+            }
+
+            const epsilon = threshold !== undefined ? threshold : (format === 'percent' ? 0.05 : 0.001);
+            if (Math.abs(changeValue) < epsilon) {
+                return;
+            }
+
+            const improved = betterDirection === 'up'
+                ? currentValue > previousValue
+                : betterDirection === 'down'
+                    ? currentValue < previousValue
+                    : changeValue > 0;
+
+            const arrow = improved ? '▲' : '▼';
+            const absChange = Math.abs(changeValue);
+            let text;
+
+            if (format === 'percent') {
+                text = `${absChange.toFixed(decimals)}%`;
+            } else {
+                text = `${absChange.toFixed(decimals)}${unit}`;
+            }
+
+            element.className = `metric-trend ${improved ? 'trend-up' : 'trend-down'}`;
+            element.textContent = `${arrow} ${text}${referenceLabel ? ` ${referenceLabel}` : ''}`;
+            element.title = `Previous: ${previousValue}, Current: ${currentValue}${referenceLabel ? ` (${referenceLabel})` : ''}`;
+        }
+
+        function openMetricModal(type) {
+            if (!currentStats) return;
+
+            metricModalState.current = type;
+            const titleMap = {
+                activeNodes: 'Active Nodes Overview',
+                avgPerNode: 'Average Stake per Node',
+                networkShare: 'Network Share Distribution',
+                rank: 'Ecosystem Rank & Scenario',
+                emissions: 'Emission Allocation & Projections'
+            };
+
+            document.getElementById('metricModalTitle').textContent = titleMap[type] || 'Metric Details';
+            const body = document.getElementById('metricModalBody');
+            body.innerHTML = buildMetricModalContent(type);
+
+            initializeMetricModal(type);
+
+            document.getElementById('metricModal').classList.add('visible');
+        }
+
+        function closeMetricModal(event) {
+            if (event && event.target && !event.target.classList.contains('modal-close') && event.target.id !== 'metricModal') {
+                return;
+            }
+
+            document.getElementById('metricModal').classList.remove('visible');
+            destroyMetricModalCharts();
+            metricModalState.current = null;
+        }
+
+        function buildMetricModalContent(type) {
+            switch (type) {
+                case 'activeNodes':
+                    return `
+                        <div class="metric-modal-section">
+                            <div class="modal-summary-grid">
+                                <div>
+                                    <div class="summary-label">Current Active Nodes</div>
+                                    <div class="summary-value">${currentStats?.stadium?.totalStakers || 0}</div>
+                                    <div class="summary-subtext">${baselineMetrics ? `Baseline: ${baselineMetrics.totalStakers ?? '—'}` : 'Baseline: —'}</div>
+                                </div>
+                                <div>
+                                    <div class="summary-label">Average Stake</div>
+                                    <div class="summary-value">${formatNumber(currentStats?.stadium?.totalStaked / (currentStats?.stadium?.totalStakers || 1) || 0)} SYND</div>
+                                    <div class="summary-subtext">${baselineMetrics ? `Baseline: ${baselineMetrics.avgPerNode ? formatNumber(baselineMetrics.avgPerNode) + ' SYND' : '—'}` : 'Baseline: —'}</div>
+                                </div>
+                                <div>
+                                    <div class="summary-label">Total Staked</div>
+                                    <div class="summary-value">${formatNumber(currentStats?.stadium?.totalStaked || 0)} SYND</div>
+                                    <div class="summary-subtext">${baselineMetrics ? `Baseline: ${baselineMetrics.totalStaked ? formatNumber(baselineMetrics.totalStaked) + ' SYND' : '—'}` : 'Baseline: —'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Staker Growth</div>
+                            <div class="chart-container"><canvas id="activeNodesTrendChart"></canvas></div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Top Staker Distribution</div>
+                            <div id="topStakerDistribution"></div>
+                        </div>
+                    `;
+                case 'avgPerNode':
+                    return `
+                        <div class="metric-modal-section">
+                            <div class="modal-summary-grid">
+                                <div>
+                                    <div class="summary-label">Average Stake per Node</div>
+                                    <div class="summary-value">${formatNumber(currentStats?.stadium?.totalStaked / (currentStats?.stadium?.totalStakers || 1) || 0)} SYND</div>
+                                </div>
+                                <div>
+                                    <div class="summary-label">Median of Top 10</div>
+                                    <div class="summary-value">${formatNumber(computeMedianTopStakers(10))} SYND</div>
+                                </div>
+                                <div>
+                                    <div class="summary-label">90th Percentile</div>
+                                    <div class="summary-value">${formatNumber(computePercentileStake(0.9))} SYND</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Average Stake Trend</div>
+                            <div class="chart-container"><canvas id="avgPerNodeTrendChart"></canvas></div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Stake Cohorts</div>
+                            <div id="stakeCohortTable"></div>
+                        </div>
+                    `;
+                case 'networkShare':
+                    return `
+                        <div class="metric-modal-section">
+                            <div class="modal-summary-grid">
+                                <div>
+                                    <div class="summary-label">Current Share</div>
+                                    <div class="summary-value">${(currentStats?.stadium?.networkShare || 0).toFixed(2)}%</div>
+                                </div>
+                                <div>
+                                    <div class="summary-label">Total Network</div>
+                                    <div class="summary-value">${formatNumber(sumEcosystemTotals())} SYND</div>
+                                </div>
+                                <div>
+                                    <div class="summary-label">Rank</div>
+                                    <div class="summary-value">#${currentStats?.stadium?.rank || '-'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Network Distribution</div>
+                            <div class="chart-container"><canvas id="networkShareDonut"></canvas></div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Appchain Breakdown</div>
+                            <div id="networkShareTable"></div>
+                        </div>
+                    `;
+                case 'rank':
+                    return `
+                        <div class="metric-modal-section">
+                            <div class="modal-summary-grid" id="rankScenarioSummary">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Scenario Simulator</div>
+                            <div class="scenario-controls">
+                                <label for="rankScenarioSlider">Additional Stake to Stadium (SYND)</label>
+                                <input type="range" id="rankScenarioSlider" min="0" max="200000" step="1000" value="0">
+                                <div class="scenario-inputs">
+                                    <input type="number" id="rankScenarioInput" min="0" max="200000" step="1000" value="0">
+                                    <div class="scenario-quick-buttons" id="rankScenarioButtons">
+                                        <button type="button" data-scenario="5000">+5K</button>
+                                        <button type="button" data-scenario="25000">+25K</button>
+                                        <button type="button" data-scenario="50000">+50K</button>
+                                        <button type="button" data-scenario="100000">+100K</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Ecosystem Leaderboard</div>
+                            <div id="rankTableContainer"></div>
+                        </div>
+                    `;
+                case 'emissions':
+                    return `
+                        <div class="metric-modal-section">
+                            <div class="modal-summary-grid" id="emissionSummaryGrid">
+                                <!-- Summary populated dynamically -->
+                            </div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Allocation Breakdown</div>
+                            <div id="emissionAllocationTable"></div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Scenario Simulator</div>
+                            <div class="scenario-controls">
+                                <label for="emissionScenarioSlider">Additional Stake to Stadium (SYND)</label>
+                                <input type="range" id="emissionScenarioSlider" min="0" max="200000" step="1000" value="0">
+                                <div class="scenario-inputs">
+                                    <input type="number" id="emissionScenarioInput" min="0" max="200000" step="1000" value="0">
+                                    <div class="scenario-quick-buttons" id="emissionScenarioButtons">
+                                        <button type="button" data-scenario="5000">+5K</button>
+                                        <button type="button" data-scenario="25000">+25K</button>
+                                        <button type="button" data-scenario="50000">+50K</button>
+                                        <button type="button" data-scenario="100000">+100K</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-modal-section">
+                            <div class="section-title">Tournament Coverage</div>
+                            <div id="tournamentProjectionTable"></div>
+                        </div>
+                    `;
+                default:
+                    return '<div style="padding: 40px; text-align: center; color: var(--text-muted);">Metric details unavailable.</div>';
+            }
+        }
+
+        function initializeMetricModal(type) {
+            switch (type) {
+                case 'activeNodes':
+                    renderActiveNodesModal();
+                    break;
+                case 'avgPerNode':
+                    renderAvgPerNodeModal();
+                    break;
+                case 'networkShare':
+                    renderNetworkShareModal();
+                    break;
+                case 'rank':
+                    renderRankModal();
+                    break;
+                case 'emissions':
+                    renderEmissionsModal();
+                    break;
+            }
+        }
+
+        function refreshMetricModal() {
+            if (!metricModalState.current || !document.getElementById('metricModal').classList.contains('visible')) {
+                return;
+            }
+
+            destroyMetricModalCharts();
+            const type = metricModalState.current;
+            document.getElementById('metricModalBody').innerHTML = buildMetricModalContent(type);
+            initializeMetricModal(type);
+        }
+
+        function destroyMetricModalCharts() {
+            Object.values(metricModalState.charts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+            metricModalState.charts = {};
+        }
+
+        function hexToRgba(hex, alpha = 1) {
+            const sanitized = hex.replace('#', '');
+            const bigint = parseInt(sanitized, 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function createVerticalGradient(ctx, color) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+            gradient.addColorStop(0, hexToRgba(color, 0.45));
+            gradient.addColorStop(0.7, hexToRgba(color, 0.18));
+            gradient.addColorStop(1, hexToRgba(color, 0));
+            return gradient;
+        }
+
+        function minimalGrid(color) {
+            return {
+                color,
+                drawTicks: false,
+                borderDash: [4, 4],
+                borderColor: 'rgba(255, 255, 255, 0.08)'
+            };
+        }
+
+        document.querySelectorAll('.metric-card.interactive').forEach(card => {
+            card.addEventListener('click', () => {
+                const metric = card.dataset.metric;
+                if (metric) {
+                    openMetricModal(metric);
+                }
+            });
+        });
+
+        function computeMedianTopStakers(count = 10) {
+            if (!currentStats || !currentStats.top10) return 0;
+            const values = currentStats.top10
+                .slice(0, count)
+                .map(item => item.amount || 0)
+                .sort((a, b) => a - b);
+            if (values.length === 0) return 0;
+            const mid = Math.floor(values.length / 2);
+            if (values.length % 2 === 0) {
+                return (values[mid - 1] + values[mid]) / 2;
+            }
+            return values[mid];
+        }
+
+        function computePercentileStake(percent = 0.9) {
+            if (!allStakersData || allStakersData.length === 0) return 0;
+            const sorted = [...allStakersData]
+                .map(item => item.amount || 0)
+                .sort((a, b) => a - b);
+            const index = Math.min(sorted.length - 1, Math.max(0, Math.floor(percent * (sorted.length - 1))));
+            return sorted[index];
+        }
+
+        function sumEcosystemTotals() {
+            if (!currentStats || !currentStats.ecosystem) return 0;
+            return currentStats.ecosystem.reduce((sum, item) => sum + (item.total || 0), 0);
+        }
+
+        function renderActiveNodesModal() {
+            renderActiveNodesTrendChart();
+            renderTopStakerDistribution();
+        }
+
+        function renderActiveNodesTrendChart() {
+            const ctx = document.getElementById('activeNodesTrendChart')?.getContext('2d');
+            if (!ctx || !currentStats?.trends) return;
+
+            const dates = Object.keys(currentStats.trends).sort();
+            const stakerSeries = dates.map(date => currentStats.trends[date].totalStakers || 0);
+            const stakeSeries = dates.map(date => currentStats.trends[date].totalStaked || 0);
+
+            metricModalState.charts.activeNodesTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Active Nodes',
+                            data: stakerSeries,
+                            borderColor: '#4CE6B6',
+                            backgroundColor: createVerticalGradient(ctx, '#4CE6B6'),
+                            fill: true,
+                            tension: 0.35,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Total Staked (SYND)',
+                            data: stakeSeries,
+                            borderColor: '#40C5FF',
+                            backgroundColor: createVerticalGradient(ctx, '#40C5FF'),
+                            fill: true,
+                            tension: 0.35,
+                            yAxisID: 'y2'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y1: {
+                            position: 'left',
+                            ticks: {
+                                color: 'rgba(127, 234, 195, 0.85)',
+                                padding: 8
+                            },
+                            grid: minimalGrid('rgba(127, 234, 195, 0.08)'),
+                            border: { display: false }
+                        },
+                        y2: {
+                            position: 'right',
+                            ticks: {
+                                color: 'rgba(64, 197, 255, 0.85)',
+                                padding: 8
+                            },
+                            grid: { drawOnChartArea: false },
+                            border: { display: false }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'rgba(107, 117, 128, 0.8)',
+                                callback: (value, index) => {
+                                    const date = dates[index];
+                                    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                },
+                                maxTicksLimit: 6,
+                                autoSkip: true
+                            },
+                            grid: {
+                                drawBorder: false,
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTopStakerDistribution() {
+            const container = document.getElementById('topStakerDistribution');
+            if (!container || !currentStats?.top10) return;
+
+            const rows = currentStats.top10.map(staker => `
+                <tr>
+                    <td>#${staker.rank}</td>
+                    <td>${formatAddress(staker.address)}</td>
+                    <td>${formatNumber(staker.amount)} SYND</td>
+                    <td>${staker.percentage.toFixed(2)}%</td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Node</th>
+                            <th>Stake</th>
+                            <th>Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderAvgPerNodeModal() {
+            renderAvgPerNodeTrendChart();
+            renderStakeCohortTable();
+        }
+
+        function renderAvgPerNodeTrendChart() {
+            const ctx = document.getElementById('avgPerNodeTrendChart')?.getContext('2d');
+            if (!ctx || !currentStats?.trends) return;
+
+            const dates = Object.keys(currentStats.trends).sort();
+            const avgSeries = dates.map(date => {
+                const entry = currentStats.trends[date];
+                if (!entry || entry.totalStakers === 0) return 0;
+                return entry.totalStaked / entry.totalStakers;
+            });
+            const stakeSeries = dates.map(date => currentStats.trends[date].totalStaked || 0);
+
+            metricModalState.charts.avgPerNodeTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Average Stake per Node (SYND)',
+                            data: avgSeries,
+                            borderColor: '#FDFEFF',
+                            backgroundColor: createVerticalGradient(ctx, '#FDFEFF'),
+                            fill: true,
+                            tension: 0.35,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Total Staked (SYND)',
+                            data: stakeSeries,
+                            borderColor: '#4CE6B6',
+                            backgroundColor: createVerticalGradient(ctx, '#4CE6B6'),
+                            fill: true,
+                            tension: 0.35,
+                            yAxisID: 'y2'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y1: {
+                            position: 'left',
+                            ticks: {
+                                color: 'rgba(253, 254, 255, 0.85)',
+                                padding: 8
+                            },
+                            grid: minimalGrid('rgba(253, 254, 255, 0.08)'),
+                            border: { display: false }
+                        },
+                        y2: {
+                            position: 'right',
+                            ticks: {
+                                color: 'rgba(76, 230, 182, 0.85)',
+                                padding: 8
+                            },
+                            grid: { drawOnChartArea: false },
+                            border: { display: false }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'rgba(107, 117, 128, 0.8)',
+                                callback: (value, index) => {
+                                    const date = dates[index];
+                                    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                },
+                                maxTicksLimit: 6,
+                                autoSkip: true
+                            },
+                            grid: {
+                                drawBorder: false,
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderStakeCohortTable() {
+            const container = document.getElementById('stakeCohortTable');
+            if (!container || !allStakersData || allStakersData.length === 0) {
+                if (container) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted);">No staker data available.</div>';
+                }
+                return;
+            }
+
+            const cohorts = [
+                { label: '< 1K SYND', min: 0, max: 1000 },
+                { label: '1K - 10K SYND', min: 1000, max: 10000 },
+                { label: '10K - 50K SYND', min: 10000, max: 50000 },
+                { label: '50K+ SYND', min: 50000, max: Infinity }
+            ];
+
+            const rows = cohorts.map(cohort => {
+                const members = allStakersData.filter(staker => {
+                    const amount = staker.amount || 0;
+                    return amount >= cohort.min && amount < cohort.max;
+                });
+                const totalStake = members.reduce((sum, staker) => sum + (staker.amount || 0), 0);
+                const avgStake = members.length ? totalStake / members.length : 0;
+                return `
+                    <tr>
+                        <td>${cohort.label}</td>
+                        <td>${members.length}</td>
+                        <td>${formatNumber(totalStake)} SYND</td>
+                        <td>${members.length ? formatNumber(avgStake) + ' SYND' : '—'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cohort</th>
+                            <th>Nodes</th>
+                            <th>Total Stake</th>
+                            <th>Average Stake</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderNetworkShareModal() {
+            renderNetworkShareDonut();
+            renderNetworkShareTable();
+        }
+
+        function simulateNetworkWithAdditionalStake(additionalStake = 0) {
+            if (!currentStats || !currentStats.ecosystem) return null;
+
+            const stadiumId = CONFIG.STADIUM_APPCHAIN_ID;
+            const updated = currentStats.ecosystem.map(item => ({
+                ...item,
+                total: item.total + (item.appchainId === stadiumId ? additionalStake : 0)
+            }));
+
+            const totalNetwork = updated.reduce((sum, item) => sum + (item.total || 0), 0);
+            updated.sort((a, b) => b.total - a.total);
+            updated.forEach((item, index) => {
+                item.rank = index + 1;
+                item.share = totalNetwork > 0 ? (item.total / totalNetwork) * 100 : 0;
+            });
+
+            const stadium = updated.find(item => item.appchainId === stadiumId);
+            const nextHigher = updated.filter(item => item.rank < (stadium ? stadium.rank : Infinity)).slice(-1)[0];
+
+            return { ecosystem: updated, stadium, totalNetwork, nextHigher };
+        }
+
+        function renderNetworkShareDonut() {
+            const ctx = document.getElementById('networkShareDonut')?.getContext('2d');
+            if (!ctx || !currentStats?.ecosystem) return;
+
+            const sorted = [...currentStats.ecosystem]
+                .sort((a, b) => b.total - a.total)
+                .sort((a, b) => (a.appchainId === CONFIG.STADIUM_APPCHAIN_ID ? -1 : 0) - (b.appchainId === CONFIG.STADIUM_APPCHAIN_ID ? -1 : 0));
+            const top = sorted.slice(0, 5);
+            const others = sorted.slice(5);
+            const otherTotal = others.reduce((sum, item) => sum + (item.total || 0), 0);
+
+            const labels = top.map(item => formatAppchainLabel(item.appchainId));
+            const data = top.map(item => item.total || 0);
+            if (otherTotal > 0) {
+                labels.push('Other Appchains');
+                data.push(otherTotal);
+            }
+
+            const colors = labels.map(label => {
+                if (label === 'Stadium') return '#40C5FF';
+                return 'rgba(22, 32, 40, 0.85)';
+            });
+            // Slight variation for additional slices
+            for (let i = 0; i < colors.length; i++) {
+                if (colors[i] !== '#40C5FF') {
+                    const alpha = 0.55 + (i * 0.08);
+                    colors[i] = `rgba(24, 36, 44, ${Math.min(alpha, 0.85)})`;
+                }
+            }
+
+            const stadiumEntry = currentStats.ecosystem.find(item => item.appchainId === CONFIG.STADIUM_APPCHAIN_ID);
+            const stadiumShare = stadiumEntry ? stadiumEntry.share || 0 : 0;
+
+            metricModalState.charts.networkShareDonut = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{
+                        data,
+                        backgroundColor: colors,
+                        borderColor: '#0C1116',
+                        borderWidth: 1.5,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '70%',
+                    rotation: -90,
+                    plugins: {
+                        donutCenter: {
+                            value: `${stadiumShare.toFixed(1)}%`,
+                            label: 'Stadium Share'
+                        }
+                    }
+                },
+                plugins: donutCenterPlugin ? [donutCenterPlugin] : []
+            });
+        }
+
+        function renderNetworkShareTable(additionalStake = 0) {
+            const container = document.getElementById('networkShareTable');
+            if (!container || !currentStats?.ecosystem) return;
+
+            const rows = currentStats.ecosystem.map(item => `
+                <tr ${item.appchainId === CONFIG.STADIUM_APPCHAIN_ID ? 'class="highlight"' : ''}>
+                    <td>#${item.rank}</td>
+                    <td>${formatAppchainLabel(item.appchainId)}</td>
+                    <td>${formatNumber(item.total)} SYND</td>
+                    <td>${(item.share || 0).toFixed(2)}%</td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Appchain</th>
+                            <th>Total Staked</th>
+                            <th>Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderRankModal() {
+            setupRankScenarioControls();
+            updateRankScenario(0);
+        }
+
+        function renderEmissionsModal() {
+            setupEmissionScenarioControls();
+            updateEmissionScenario(0);
+        }
+
+        function computeEmissionScenario(additionalStake = 0) {
+            const simulation = simulateNetworkWithAdditionalStake(additionalStake);
+            const share = simulation?.stadium?.share ?? (currentStats?.stadium?.networkShare || 0);
+            const baselineShare = currentStats?.stadium?.networkShare || 0;
+            const appchainPoolEmission = currentStats?.emissions?.appchainPoolEmissionPerEpoch || 0;
+            const epochDays = currentStats?.emissions?.epochDurationDays || 30;
+            const price = currentStats?.price?.price || 0;
+
+            const emissionPerEpochSYND = appchainPoolEmission * (share / 100);
+            const emissionPerDaySYND = emissionPerEpochSYND / epochDays;
+            const emissionPerEpochUSD = emissionPerEpochSYND * price;
+            const emissionPerDayUSD = emissionPerDaySYND * price;
+
+            const baselineEmissionPerEpoch = currentStats?.emissions?.stadiumEmissionPerEpoch || (appchainPoolEmission * (baselineShare / 100));
+
+            return {
+                share,
+                baselineShare,
+                emissionPerEpochSYND,
+                emissionPerDaySYND,
+                emissionPerEpochUSD,
+                emissionPerDayUSD,
+                baselineEmissionPerEpoch,
+                epochDays,
+                price,
+                simulation
+            };
+        }
+
+        function formatAppchainLabel(appchainId) {
+            const labels = {
+                574014: 'Stadium',
+                510003: 'Commons',
+                63829: 'Fabric',
+                510525: 'Prime'
+            };
+            return labels[appchainId] || `Appchain ${appchainId}`;
+        }
+
+        function setupRankScenarioControls() {
+            const slider = document.getElementById('rankScenarioSlider');
+            const input = document.getElementById('rankScenarioInput');
+            const buttons = document.querySelectorAll('#rankScenarioButtons button');
+
+            if (!slider || !input) return;
+
+            const syncValue = value => {
+                const normalized = Math.max(parseInt(slider.min, 10), Math.min(parseInt(slider.max, 10), Math.round(value / parseInt(slider.step, 10)) * parseInt(slider.step, 10)));
+                slider.value = normalized;
+                input.value = normalized;
+                updateRankScenario(normalized);
+            };
+
+            slider.oninput = () => syncValue(parseInt(slider.value, 10));
+            input.oninput = () => syncValue(parseInt(input.value, 10) || 0);
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const increment = parseInt(button.dataset.scenario, 10) || 0;
+                    const current = parseInt(slider.value, 10) || 0;
+                    syncValue(current + increment);
+                });
+            });
+        }
+
+        function setupEmissionScenarioControls() {
+            const slider = document.getElementById('emissionScenarioSlider');
+            const input = document.getElementById('emissionScenarioInput');
+            const buttons = document.querySelectorAll('#emissionScenarioButtons button');
+
+            if (!slider || !input) return;
+
+            const syncValue = value => {
+                const normalized = Math.max(parseInt(slider.min, 10), Math.min(parseInt(slider.max, 10), Math.round((value || 0) / parseInt(slider.step, 10)) * parseInt(slider.step, 10)));
+                slider.value = normalized;
+                input.value = normalized;
+                updateEmissionScenario(normalized);
+            };
+
+            slider.oninput = () => syncValue(parseInt(slider.value, 10));
+            input.oninput = () => syncValue(parseInt(input.value, 10) || 0);
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const increment = parseInt(button.dataset.scenario, 10) || 0;
+                    const current = parseInt(slider.value, 10) || 0;
+                    syncValue(current + increment);
+                });
+            });
+        }
+
+        function updateEmissionScenario(additionalStake = 0) {
+            const scenario = computeEmissionScenario(additionalStake);
+            if (!scenario) return;
+
+            const baselineEmissionPerEpochSYND = currentStats?.emissions?.stadiumEmissionPerEpoch || scenario.baselineEmissionPerEpoch;
+            const baselineEmissionPerEpochUSD = baselineEmissionPerEpochSYND * (scenario.price || 0);
+            const emissionDeltaSYND = scenario.emissionPerEpochSYND - baselineEmissionPerEpochSYND;
+            const emissionDeltaUSD = scenario.emissionPerEpochUSD - baselineEmissionPerEpochUSD;
+
+            const summaryGrid = document.getElementById('emissionSummaryGrid');
+            if (summaryGrid) {
+                summaryGrid.innerHTML = `
+                    <div>
+                        <div class="summary-label">Emissions per Epoch</div>
+                        <div class="summary-value">${formatNumber(scenario.emissionPerEpochSYND)} SYND</div>
+                        <div class="summary-subtext">${formatUSD(scenario.emissionPerEpochUSD)} • Δ ${emissionDeltaSYND >= 0 ? '+' : ''}${formatNumber(emissionDeltaSYND)} SYND</div>
+                    </div>
+                    <div>
+                        <div class="summary-label">Emissions per Day</div>
+                        <div class="summary-value">${formatNumber(scenario.emissionPerDaySYND)} SYND</div>
+                        <div class="summary-subtext">${formatUSD(scenario.emissionPerDayUSD)} • ${scenario.epochDays}-day epoch</div>
+                    </div>
+                    <div>
+                        <div class="summary-label">Stadium Share</div>
+                        <div class="summary-value">${scenario.share.toFixed(2)}%</div>
+                        <div class="summary-subtext">${scenario.share - scenario.baselineShare >= 0 ? `<span class="summary-badge">▲ ${(scenario.share - scenario.baselineShare).toFixed(2)}%</span>` : `<span class="summary-badge" style="background: rgba(255, 122, 122, 0.12); color: var(--trend-down); border-color: rgba(255,122,122,0.45);">▼ ${Math.abs(scenario.share - scenario.baselineShare).toFixed(2)}%</span>`}</div>
+                    </div>
+                    <div>
+                        <div class="summary-label">Additional Stake</div>
+                        <div class="summary-value">${formatNumber(additionalStake)} SYND</div>
+                        <div class="summary-subtext">Δ ${emissionDeltaUSD >= 0 ? '+' : ''}${formatUSD(emissionDeltaUSD)}</div>
+                    </div>
+                `;
+            }
+
+            const allocationData = EMISSION_ALLOCATIONS.map(entry => ({
+                ...entry,
+                perEpochSYND: scenario.emissionPerEpochSYND * entry.percent,
+                perEpochUSD: scenario.emissionPerEpochUSD * entry.percent,
+                perDaySYND: scenario.emissionPerDaySYND * entry.percent,
+                perDayUSD: scenario.emissionPerDayUSD * entry.percent
+            }));
+
+            renderEmissionAllocationTable(allocationData);
+            const tournamentAllocation = allocationData.find(entry => entry.key === 'tournaments');
+            renderTournamentProjectionTable(tournamentAllocation, scenario.epochDays);
+        }
+
+        function renderEmissionAllocationTable(allocationData) {
+            const container = document.getElementById('emissionAllocationTable');
+            if (!container) return;
+
+            if (!allocationData || allocationData.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted);">No allocation data available.</div>';
+                return;
+            }
+
+            const rows = allocationData.map(entry => `
+                <tr>
+                    <td>
+                        <div class="allocation-label">${entry.label}</div>
+                        <div class="allocation-bar-track">
+                            <div class="allocation-bar-fill" style="width: ${(entry.percent * 100).toFixed(0)}%;"></div>
+                        </div>
+                    </td>
+                    <td>${(entry.percent * 100).toFixed(0)}%</td>
+                    <td>${formatNumber(entry.perEpochSYND)} SYND</td>
+                    <td>${formatUSD(entry.perEpochUSD)}</td>
+                    <td>${formatUSD(entry.perDayUSD)} / day</td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Allocation</th>
+                            <th>%</th>
+                            <th>Per Epoch (SYND)</th>
+                            <th>Per Epoch (USD)</th>
+                            <th>Per Day (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderTournamentProjectionTable(allocation, epochDays) {
+            const container = document.getElementById('tournamentProjectionTable');
+            if (!container) return;
+
+            if (!allocation) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted);">No tournament allocation defined.</div>';
+                return;
+            }
+
+            const budgetUSD = allocation.perEpochUSD || 0;
+            const budgetPerDayUSD = allocation.perDayUSD || 0;
+            const MATCHES_PER_DAY = 5;
+
+            const rows = TOURNAMENT_TIERS.map(tier => {
+                const minCount = Math.floor(budgetUSD / (tier.max || 1));
+                const maxCount = Math.floor(budgetUSD / Math.max(tier.min, 1));
+                const dailySpend = budgetPerDayUSD / MATCHES_PER_DAY;
+                const dailyCapacity = Math.floor(dailySpend / Math.max(tier.max, 1));
+                return `
+                    <tr>
+                        <td>${tier.label}</td>
+                        <td>${formatUSD(tier.min)} - ${formatUSD(tier.max)}</td>
+                        <td>${minCount} - ${maxCount} events</td>
+                        <td>${Math.max(0, dailyCapacity)} / day (5 matches cap)</td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tier</th>
+                            <th>Prize Pool Range</th>
+                            <th>Events per Epoch</th>
+                            <th>Daily Capacity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function updateRankScenario(additionalStake = 0) {
+            const simulation = simulateNetworkWithAdditionalStake(additionalStake);
+            if (!simulation) return;
+
+            const stadiumId = CONFIG.STADIUM_APPCHAIN_ID;
+            const appchainPoolEmission = currentStats.emissions?.appchainPoolEmissionPerEpoch || 0;
+            const epochDays = currentStats.emissions?.epochDurationDays || 30;
+
+            const { ecosystem: updated, stadium, nextHigher } = simulation;
+            const currentRank = currentStats.stadium.rank || 0;
+            const rankChange = stadium ? (currentRank || stadium.rank) - stadium.rank : 0;
+            const distanceToNext = nextHigher ? Math.max(0, nextHigher.total - stadium.total) : 0;
+
+            const newEmissionPerEpoch = stadium ? appchainPoolEmission * (stadium.share / 100) : 0;
+            const newEmissionPerDay = newEmissionPerEpoch / epochDays;
+
+            const summary = document.getElementById('rankScenarioSummary');
+            if (summary) {
+                summary.innerHTML = `
+                    <div>
+                        <div class="summary-label">Projected Rank</div>
+                        <div class="summary-value">#${stadium ? stadium.rank : currentRank}</div>
+                        <div class="summary-subtext">${rankChange > 0 ? `<span class="summary-badge">▲ ${rankChange} positions</span>` : rankChange < 0 ? `<span class="summary-badge" style="background: rgba(255, 122, 122, 0.12); color: var(--trend-down); border-color: rgba(255,122,122,0.45);">▼ ${Math.abs(rankChange)} positions</span>` : 'No change'}</div>
+                    </div>
+                    <div>
+                        <div class="summary-label">Projected Share</div>
+                        <div class="summary-value">${stadium ? stadium.share.toFixed(2) : (currentStats.stadium.networkShare || 0).toFixed(2)}%</div>
+                        <div class="summary-subtext">Additional stake: ${formatNumber(additionalStake)} SYND</div>
+                    </div>
+                    <div>
+                        <div class="summary-label">Projected Emissions / Epoch</div>
+                        <div class="summary-value">${formatNumber(newEmissionPerEpoch)} SYND</div>
+                        <div class="summary-subtext">≈ ${formatNumber(newEmissionPerDay)} SYND / day</div>
+                    </div>
+                    <div>
+                        <div class="summary-label">Distance to Next Rank</div>
+                        <div class="summary-value">${distanceToNext > 0 ? formatNumber(distanceToNext) + ' SYND' : 'Lead secured'}</div>
+                        <div class="summary-subtext">${nextHigher ? `Target: ${formatAppchainLabel(nextHigher.appchainId)}` : 'You are #1'}</div>
+                    </div>
+                `;
+            }
+
+            const tableContainer = document.getElementById('rankTableContainer');
+            if (tableContainer) {
+                const rows = updated.map(item => {
+                    const change = (currentStats.ecosystem.find(ec => ec.appchainId === item.appchainId)?.rank || item.rank) - item.rank;
+                    const changeBadge = change > 0 ? `<span class="summary-badge">▲ ${change}</span>` : change < 0 ? `<span class="summary-badge" style="background: rgba(255, 122, 122, 0.12); color: var(--trend-down); border-color: rgba(255,122,122,0.45);">▼ ${Math.abs(change)}</span>` : '—';
+                    return `
+                        <tr ${item.appchainId === stadiumId ? 'class="highlight"' : ''}>
+                            <td>#${item.rank}</td>
+                            <td>${formatAppchainLabel(item.appchainId)}</td>
+                            <td>${formatNumber(item.total)} SYND</td>
+                            <td>${item.share.toFixed(2)}%</td>
+                            <td>${changeBadge}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tableContainer.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Appchain</th>
+                                <th>Total Staked</th>
+                                <th>Share</th>
+                                <th>Δ Rank</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+            }
         }
 
         // Isometric drawing
@@ -1381,35 +2811,35 @@
             ];
 
             if (filled) {
-                // Top face
+            // Top face
                 ctx.fillStyle = topColor;
-                ctx.beginPath();
-                ctx.moveTo(points[4].x, points[4].y);
-                ctx.lineTo(points[5].x, points[5].y);
-                ctx.lineTo(points[6].x, points[6].y);
-                ctx.lineTo(points[7].x, points[7].y);
-                ctx.closePath();
-                ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(points[4].x, points[4].y);
+            ctx.lineTo(points[5].x, points[5].y);
+            ctx.lineTo(points[6].x, points[6].y);
+            ctx.lineTo(points[7].x, points[7].y);
+            ctx.closePath();
+            ctx.fill();
 
-                // Right face
+            // Right face
                 ctx.fillStyle = rightColor;
-                ctx.beginPath();
-                ctx.moveTo(points[1].x, points[1].y);
-                ctx.lineTo(points[2].x, points[2].y);
-                ctx.lineTo(points[6].x, points[6].y);
-                ctx.lineTo(points[5].x, points[5].y);
-                ctx.closePath();
-                ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(points[1].x, points[1].y);
+            ctx.lineTo(points[2].x, points[2].y);
+            ctx.lineTo(points[6].x, points[6].y);
+            ctx.lineTo(points[5].x, points[5].y);
+            ctx.closePath();
+            ctx.fill();
 
-                // Left face
+            // Left face
                 ctx.fillStyle = leftColor;
-                ctx.beginPath();
-                ctx.moveTo(points[0].x, points[0].y);
-                ctx.lineTo(points[3].x, points[3].y);
-                ctx.lineTo(points[7].x, points[7].y);
-                ctx.lineTo(points[4].x, points[4].y);
-                ctx.closePath();
-                ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            ctx.lineTo(points[3].x, points[3].y);
+            ctx.lineTo(points[7].x, points[7].y);
+            ctx.lineTo(points[4].x, points[4].y);
+            ctx.closePath();
+            ctx.fill();
             }
 
             const edges = [
@@ -1787,7 +3217,7 @@
             }
             const mousePos = getMousePos(e);
             const markerIndex = findMarkerAt(mousePos.x, mousePos.y);
-
+            
             if (markerIndex !== null && markerIndex !== hoveredMarker) {
                 hoveredMarker = markerIndex;
                 canvas.style.cursor = 'pointer';
@@ -1818,7 +3248,9 @@
         });
 
         function updateUI(stats) {
+            const previousStats = currentStats;
             currentStats = stats;
+            baselineMetrics = computeBaselineMetrics(stats);
             
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('errorState').style.display = 'none';
@@ -1865,13 +3297,57 @@
             // Update metrics
             const totalStakers = stats.stadium.totalStakers;
             document.getElementById('stakerCount').textContent = totalStakers;
+            const stakerCountTrendEl = document.getElementById('stakerCountTrend');
             
             const avgPerNode = totalStakers > 0 ? totalStaked / totalStakers : 0;
             document.getElementById('avgPerNode').textContent = formatNumber(avgPerNode);
+            const avgPerNodeTrendEl = document.getElementById('avgPerNodeTrend');
             
             const networkShare = stats.stadium.networkShare || 0;
             document.getElementById('networkShare').textContent = `${typeof networkShare === 'number' ? networkShare.toFixed(2) : '0.00'}%`;
+            const networkShareTrendEl = document.getElementById('networkShareTrend');
             document.getElementById('rank').textContent = `#${stats.stadium.rank || '-'}`;
+            const rankTrendEl = document.getElementById('rankTrend');
+
+            const baselineLabel = baselineMetrics ? formatBaselineLabel(baselineMetrics.date) : 'vs last refresh';
+
+            const prevTotalStakers = baselineMetrics?.totalStakers ?? previousStats?.stadium?.totalStakers;
+            const prevTotalStaked = baselineMetrics?.totalStaked ?? previousStats?.stadium?.totalStaked;
+            const prevAvgPerNode = (typeof prevTotalStakers === 'number' && prevTotalStakers > 0 && typeof prevTotalStaked === 'number')
+                ? prevTotalStaked / prevTotalStakers
+                : undefined;
+            const prevNetworkShare = baselineMetrics ? undefined : previousStats?.stadium?.networkShare;
+            const prevRank = baselineMetrics ? undefined : previousStats?.stadium?.rank;
+
+            setTrend(stakerCountTrendEl, totalStakers, prevTotalStakers, {
+                betterDirection: 'up',
+                format: 'percent',
+                decimals: 1,
+                referenceLabel: baselineLabel
+            });
+
+            setTrend(avgPerNodeTrendEl, avgPerNode, prevAvgPerNode, {
+                betterDirection: 'up',
+                format: 'percent',
+                decimals: 1,
+                referenceLabel: baselineLabel
+            });
+
+            setTrend(networkShareTrendEl, networkShare, prevNetworkShare, {
+                betterDirection: 'up',
+                format: 'percent',
+                decimals: 2,
+                threshold: 0.01,
+                referenceLabel: 'vs last refresh'
+            });
+
+            setTrend(rankTrendEl, stats.stadium.rank, prevRank, {
+                betterDirection: 'down',
+                format: 'number',
+                decimals: 0,
+                threshold: 0.5,
+                referenceLabel: 'vs last refresh'
+            });
 
             const emissions = stats.emissions || {};
             const emissionPerEpoch = typeof emissions.stadiumEmissionPerEpoch === 'number' ? emissions.stadiumEmissionPerEpoch : 0;
@@ -1929,6 +3405,8 @@
                     emissionDayUSDEl.style.display = 'none';
                 }
             }
+
+            refreshMetricModal();
 
             // Update node grid with clickable nodes and quality indicators
             const nodeGrid = document.getElementById('nodeGrid');
@@ -2039,13 +3517,13 @@
                 snapshotsList.innerHTML = data.snapshots.map(snapshot => {
                     const date = new Date(snapshot.date);
                     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                return `
+                    return `
                         <div class="mini-stat" style="cursor: pointer;" onclick="showSnapshotDetails('${snapshot.date}')">
                             <span class="mini-stat-label">${dateStr}</span>
                             <span class="mini-stat-value">${formatNumber(snapshot.totalStaked)} SYND</span>
-                            </div>
-                `;
-            }).join('');
+                        </div>
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('Error loading snapshots:', error);
             }
@@ -2229,9 +3707,9 @@
                 } else {
                     // Create desktop charts
                     if (charts.totalStaked) return; // Already loaded
-                createTotalStakedChart(trends);
-                createDailyFlowChart(trends);
-                createStakerGrowthChart(trends);
+                    createTotalStakedChart(trends);
+                    createDailyFlowChart(trends);
+                    createStakerGrowthChart(trends);
                 }
             } catch (error) {
                 console.error('Error loading charts:', error);
@@ -2454,14 +3932,14 @@
                     },
                     scales: {
                         x: {
-                            ticks: {
-                                color: CHART_COLORS.textSecondary,
+                            ticks: { 
+                                color: CHART_COLORS.textSecondary, 
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 maxRotation: 45,
                                 minRotation: 45,
                                 padding: 8
-                            },
-                            grid: {
+                            }, 
+                            grid: { 
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2474,9 +3952,9 @@
                                 padding: { top: 10 }
                             }
                         },
-                        y: {
-                            ticks: {
-                                color: CHART_COLORS.textSecondary,
+                        y: { 
+                            ticks: { 
+                                color: CHART_COLORS.textSecondary, 
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 padding: 8,
                                 callback: function(v) {
@@ -2484,8 +3962,8 @@
                                     if (v >= 1000) return (v/1000).toFixed(0) + 'K';
                                     return v.toFixed(0);
                                 }
-                            },
-                            grid: {
+                            }, 
+                            grid: { 
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2502,7 +3980,7 @@
                 }
             });
         }
-        
+
         function createDailyFlowChart(trends) {
             const ctx = document.getElementById('dailyFlowChart').getContext('2d');
             if (charts.dailyFlow) charts.dailyFlow.destroy();
@@ -2512,16 +3990,16 @@
                 data: {
                     labels: trends.map(t => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
                     datasets: [
-                        {
+                        { 
                             label: 'Stakes', 
-                            data: trends.map(t => t.stakes),
+                            data: trends.map(t => t.stakes), 
                             backgroundColor: CHART_COLORS.primary,
                             borderColor: CHART_COLORS.primary,
                             borderWidth: 2
                         },
-                        {
+                        { 
                             label: 'Unstakes', 
-                            data: trends.map(t => -t.unstakes),
+                            data: trends.map(t => -t.unstakes), 
                             backgroundColor: CHART_COLORS.secondary,
                             borderColor: CHART_COLORS.secondary,
                             borderWidth: 2
@@ -2572,14 +4050,14 @@
                     scales: {
                         x: {
                             stacked: false,
-                            ticks: {
-                                color: CHART_COLORS.textSecondary,
+                            ticks: { 
+                                color: CHART_COLORS.textSecondary, 
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 maxRotation: 45,
                                 minRotation: 45,
                                 padding: 8
-                            },
-                            grid: {
+                            }, 
+                            grid: { 
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2594,8 +4072,8 @@
                         },
                         y: {
                             stacked: false,
-                            ticks: {
-                                color: CHART_COLORS.textSecondary,
+                            ticks: { 
+                                color: CHART_COLORS.textSecondary, 
                                 font: { size: 11, weight: '500' },
                                 padding: 8,
                                 callback: function(v) {
@@ -2604,8 +4082,8 @@
                                     if (abs >= 1000) return (abs/1000).toFixed(0) + 'K';
                                     return abs.toFixed(0);
                                 }
-                            },
-                            grid: {
+                            }, 
+                            grid: { 
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2623,7 +4101,7 @@
                 }
             });
         }
-        
+
         function createStakerGrowthChart(trends) {
             const ctx = document.getElementById('stakerGrowthChart').getContext('2d');
             if (charts.stakerGrowth) charts.stakerGrowth.destroy();
@@ -2639,11 +4117,11 @@
                     datasets: [
                         {
                             label: 'Total Stakers',
-                        data: trends.map(t => t.totalStakers),
-                        borderColor: CHART_COLORS.secondary,
+                            data: trends.map(t => t.totalStakers),
+                            borderColor: CHART_COLORS.secondary,
                             backgroundColor: 'rgba(176, 184, 192, 0.15)',
                             borderWidth: 3,
-                        fill: true,
+                            fill: true,
                             tension: 0.4,
                             pointRadius: 4,
                             pointHoverRadius: 6,
@@ -2660,7 +4138,7 @@
                             borderWidth: 2,
                             borderDash: [8, 4],
                             fill: false,
-                        tension: 0.1,
+                            tension: 0.1,
                             pointRadius: 3,
                             pointHoverRadius: 5,
                             pointBackgroundColor: CHART_COLORS.primary,
@@ -2720,14 +4198,14 @@
                     },
                     scales: {
                         x: {
-                            ticks: {
-                                color: CHART_COLORS.textSecondary,
+                            ticks: { 
+                                color: CHART_COLORS.textSecondary, 
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 maxRotation: 45,
                                 minRotation: 45,
                                 padding: 8
-                            },
-                            grid: {
+                            }, 
+                            grid: { 
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2743,13 +4221,13 @@
                         y: {
                             type: 'linear',
                             position: 'left',
-                            ticks: {
+                            ticks: { 
                                 color: CHART_COLORS.secondary, 
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 padding: 8,
                                 stepSize: 1
-                            },
-                            grid: {
+                            }, 
+                            grid: { 
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2885,6 +4363,7 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeNodeModal();
+                closeMetricModal();
                 // Also close visualizer on mobile
                 if (window.innerWidth <= 768) {
                     const isoContainer = document.querySelector('.iso-container');
