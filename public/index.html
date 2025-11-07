@@ -1295,6 +1295,8 @@
             subtle: 'rgba(255, 255, 255, 0.1)'
         };
 
+        const SHOW_NODE_MARKERS = false;
+
         const STADIUM_STAGES = [
             {
                 id: 'foundation',
@@ -1637,8 +1639,11 @@
 
             drawCrownDetails(progress.crown);
             drawCenterField();
-
-            drawNodeMarkers();
+            if (SHOW_NODE_MARKERS) {
+                drawNodeMarkers();
+            } else {
+                nodeMarkers = [];
+            }
         }
 
         function drawNodeMarkers() {
@@ -1773,6 +1778,11 @@
         }
 
         canvas.addEventListener('mousemove', (e) => {
+            if (!SHOW_NODE_MARKERS) {
+                canvas.style.cursor = 'default';
+                hideTooltip();
+                return;
+            }
             const mousePos = getMousePos(e);
             const markerIndex = findMarkerAt(mousePos.x, mousePos.y);
 
@@ -1788,6 +1798,7 @@
         });
 
         canvas.addEventListener('click', (e) => {
+            if (!SHOW_NODE_MARKERS) return;
             const mousePos = getMousePos(e);
             const markerIndex = findMarkerAt(mousePos.x, mousePos.y);
             if (markerIndex !== null) {
