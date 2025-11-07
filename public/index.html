@@ -413,6 +413,13 @@
             color: var(--text-primary);
         }
 
+        .metric-card-subvalue {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+        }
+
         .staker-list {
             display: flex;
             flex-direction: column;
@@ -584,6 +591,36 @@
             padding: 20px;
             margin-bottom: 30px;
             height: 280px;
+        }
+
+        .visualizer-tooltip {
+            position: absolute;
+            background: rgba(15, 20, 25, 0.92);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+            pointer-events: none;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+            display: none;
+            transform: translate(-50%, -120%);
+            z-index: 20;
+            min-width: 140px;
+            text-transform: uppercase;
+        }
+
+        .visualizer-tooltip strong {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .visualizer-tooltip span {
+            display: block;
+            font-size: 10px;
+            color: var(--text-secondary);
         }
 
         .chart-toggle {
@@ -823,7 +860,7 @@
                 grid-template-columns: 1fr;
                 gap: 12px;
             }
-
+            
             .node-grid {
                 grid-template-columns: repeat(6, 1fr);
                 gap: 6px;
@@ -832,7 +869,7 @@
             .node {
                 font-size: 9px;
             }
-
+            
             .stat-value {
                 font-size: 24px;
             }
@@ -873,7 +910,7 @@
 </head>
 <body>
     <div class="timestamp" id="timestamp">00:00:00</div>
-
+    
     <div class="container">
         <!-- Left: Isometric View -->
         <div class="iso-container">
@@ -887,6 +924,7 @@
             <div class="iso-label label-top">STAKING INFRASTRUCTURE</div>
             <div class="iso-label label-bottom">APPCHAIN 574014</div>
             <canvas id="isoCanvas" width="900" height="900"></canvas>
+            <div class="visualizer-tooltip" id="visualizerTooltip"></div>
             
             <!-- Charts Overlay -->
             <div class="charts-overlay" id="chartsOverlay">
@@ -923,35 +961,35 @@
                         <span class="status-dot"></span>
                         <span id="statusText">INITIALIZING</span>
                     </span>
-                </div>
             </div>
+        </div>
 
-            <!-- Loading State -->
+        <!-- Loading State -->
             <div id="loadingState" class="loading-state">
-                <div class="loading-spinner"></div>
-                <div>INITIALIZING DATA STREAMS</div>
-            </div>
+            <div class="loading-spinner"></div>
+            <div>INITIALIZING DATA STREAMS</div>
+        </div>
 
-            <!-- Error State -->
+        <!-- Error State -->
             <div id="errorState" class="error-message" style="display: none;">
-                <strong>SYSTEM ERROR:</strong> <span id="errorMessage"></span>
-            </div>
+            <strong>SYSTEM ERROR:</strong> <span id="errorMessage"></span>
+        </div>
 
-            <!-- Main Content -->
-            <div id="mainContent" style="display: none;">
+        <!-- Main Content -->
+        <div id="mainContent" style="display: none;">
                 <div class="stats-section">
                     <!-- Total Staked -->
                     <div class="stat-group">
                         <div class="stat-item">
                             <div class="stat-label">Total Staked</div>
-                            <div class="stat-value" id="totalStaked">0</div>
+                        <div class="stat-value" id="totalStaked">0</div>
                             <div class="stat-secondary" id="totalStakedSubtitle">SYND locked in network</div>
                             <div class="progress-bar">
                                 <div class="progress-fill" id="goalProgress" style="width: 0%"></div>
-                            </div>
-                            <div class="goal-label" id="goalLabel">Goal: --</div>
-                        </div>
                     </div>
+                            <div class="goal-label" id="goalLabel">Goal: --</div>
+                    </div>
+                </div>
 
                     <div class="divider"></div>
 
@@ -962,22 +1000,32 @@
                             <div class="metric-card">
                                 <div class="metric-card-label">Active Nodes</div>
                                 <div class="metric-card-value" id="stakerCount">0</div>
-                            </div>
+                        </div>
                             <div class="metric-card">
                                 <div class="metric-card-label">Avg Per Node</div>
                                 <div class="metric-card-value" id="avgPerNode">0</div>
-                            </div>
+                        </div>
                             <div class="metric-card">
                                 <div class="metric-card-label">Network Share</div>
                                 <div class="metric-card-value" id="networkShare">0%</div>
-                            </div>
+                    </div>
                             <div class="metric-card">
                                 <div class="metric-card-label">Rank</div>
                                 <div class="metric-card-value" id="rank">#-</div>
+                </div>
+                            <div class="metric-card">
+                                <div class="metric-card-label">Emission / Epoch</div>
+                                <div class="metric-card-value" id="emissionEpoch">0</div>
+                                <div class="metric-card-subvalue" id="emissionEpochDetail">Epoch -- · Appchain pool</div>
+                        </div>
+                            <div class="metric-card">
+                                <div class="metric-card-label">Emission / Day</div>
+                                <div class="metric-card-value" id="emissionDay">0</div>
+                                <div class="metric-card-subvalue" id="emissionDayDetail">Based on 30-day epoch</div>
                             </div>
                         </div>
                     </div>
-
+                    
                     <div class="divider"></div>
 
                     <!-- Node Status -->
@@ -987,7 +1035,7 @@
                             <!-- Generated by JS -->
                         </div>
                     </div>
-
+                    
                     <div class="divider"></div>
 
                     <!-- Position Details -->
@@ -1004,8 +1052,8 @@
                         <div class="mini-stat">
                             <span class="mini-stat-label">Last Updated</span>
                             <span class="mini-stat-value" id="lastUpdated">--:--:--</span>
-                        </div>
                     </div>
+                </div>
 
                     <div class="divider"></div>
 
@@ -1014,8 +1062,8 @@
                         <div class="section-title">Primary Nodes</div>
                         <div class="staker-list" id="topStakers">
                             <!-- Generated by JS -->
-                        </div>
-                    </div>
+            </div>
+            </div>
 
                     <div class="divider"></div>
 
@@ -1028,7 +1076,7 @@
                         <div id="snapshotsList" style="max-height: 200px; overflow-y: auto;">
                             <!-- Generated by JS -->
                         </div>
-                    </div>
+        </div>
 
                     <!-- Mobile Charts Section -->
                     <div id="mobileCharts" style="display: none;">
@@ -1037,7 +1085,7 @@
                             <div class="section-title">Analytics</div>
                             <div class="chart-container" style="margin-top: 16px;">
                                 <canvas id="mobileTotalStakedChart"></canvas>
-                            </div>
+            </div>
                             <div class="chart-container">
                                 <canvas id="mobileDailyFlowChart"></canvas>
                             </div>
@@ -1059,7 +1107,7 @@
                 <button class="modal-close" onclick="closeNodeModal()">CLOSE</button>
             </div>
             <div class="modal-body" id="nodeModalBody">
-                <!-- Populated by JS -->
+                        <!-- Populated by JS -->
             </div>
         </div>
     </div>
@@ -1076,11 +1124,10 @@
 
         let refreshTimer;
         let currentStats = null;
-        let time = 0;
         let charts = {};
         let allStakersData = [];
-        let satellitePositions = []; // Store positions for hover detection
-        let hoveredSatellite = null;
+        let nodeMarkers = [];
+        let hoveredMarker = null;
 
         // Update timestamp
         function updateTimestamp() {
@@ -1150,21 +1197,33 @@
             ctx.fill();
         }
 
-        function drawCube(x, y, z, w, h, d, filled = false) {
+        function drawCube(x, y, z, w, h, d, opts = {}) {
+            let options = {};
+            if (typeof opts === 'boolean') {
+                options.filled = opts;
+            } else {
+                options = opts || {};
+            }
+
+            const filled = options.filled !== false;
+            const topColor = options.topColor || colors.bg;
+            const rightColor = options.rightColor || 'rgba(42, 56, 67, 0.6)';
+            const leftColor = options.leftColor || 'rgba(42, 56, 67, 0.8)';
+
             const points = [
-                iso(x, y, z),         // 0: front bottom left
-                iso(x + w, y, z),     // 1: front bottom right
-                iso(x + w, y, z + d), // 2: back bottom right
-                iso(x, y, z + d),     // 3: back bottom left
-                iso(x, y + h, z),     // 4: front top left
-                iso(x + w, y + h, z), // 5: front top right
-                iso(x + w, y + h, z + d), // 6: back top right
-                iso(x, y + h, z + d)  // 7: back top left
+                iso(x, y, z),
+                iso(x + w, y, z),
+                iso(x + w, y, z + d),
+                iso(x, y, z + d),
+                iso(x, y + h, z),
+                iso(x + w, y + h, z),
+                iso(x + w, y + h, z + d),
+                iso(x, y + h, z + d)
             ];
 
             if (filled) {
                 // Top face
-                ctx.fillStyle = colors.bg;
+                ctx.fillStyle = topColor;
                 ctx.beginPath();
                 ctx.moveTo(points[4].x, points[4].y);
                 ctx.lineTo(points[5].x, points[5].y);
@@ -1174,7 +1233,7 @@
                 ctx.fill();
 
                 // Right face
-                ctx.fillStyle = 'rgba(42, 56, 67, 0.6)';
+                ctx.fillStyle = rightColor;
                 ctx.beginPath();
                 ctx.moveTo(points[1].x, points[1].y);
                 ctx.lineTo(points[2].x, points[2].y);
@@ -1184,7 +1243,7 @@
                 ctx.fill();
 
                 // Left face
-                ctx.fillStyle = 'rgba(42, 56, 67, 0.8)';
+                ctx.fillStyle = leftColor;
                 ctx.beginPath();
                 ctx.moveTo(points[0].x, points[0].y);
                 ctx.lineTo(points[3].x, points[3].y);
@@ -1194,163 +1253,274 @@
                 ctx.fill();
             }
 
-            // Edges
             const edges = [
-                [0,1], [1,2], [2,3], [3,0], // bottom
-                [4,5], [5,6], [6,7], [7,4], // top
-                [0,4], [1,5], [2,6], [3,7]  // vertical
+                [0,1], [1,2], [2,3], [3,0],
+                [4,5], [5,6], [6,7], [7,4],
+                [0,4], [1,5], [2,6], [3,7]
             ];
 
             edges.forEach(([a, b]) => {
-                drawLine(points[a], points[b], colors.secondary, 1.5, 0.4);
+                drawLine(points[a], points[b], colors.secondary, 1.3, 0.35);
             });
-
-            // Vertices
-            points.forEach(p => drawDot(p, 2, colors.tertiary));
         }
 
-        function drawStation(stakerCount = 0) {
-            const baseSize = 180;
-            const platformH = 15;
-            
-            // Base platform
-            drawCube(-baseSize/2, -platformH, -baseSize/2, baseSize, platformH, baseSize, true);
-            
-            // Central tower (main core) - height based on total staked
-            const towerW = 50;
-            const towerH = 200 + (stakerCount * 2);
-            const towerD = 50;
-            drawCube(-towerW/2, -platformH - towerH, -towerD/2, towerW, towerH, towerD, true);
-            
-            // Top antenna
-            const antennaH = 40;
-            const antennaTop = iso(0, -platformH - towerH - antennaH, 0);
-            const antennaBase = iso(0, -platformH - towerH, 0);
-            drawLine(antennaBase, antennaTop, colors.primary, 2);
-            drawDot(antennaTop, 4, colors.primary);
-            
-            // Orbiting nodes (satellites) - use actual staker data
-            const orbitRadius = 160;
-            satellitePositions = []; // Reset positions
-            
-            // Get the same sorted stakers used in the grid - use global reference
-            let sortedStakers = window.sortedStakersForVisualizer || [];
-            if (sortedStakers.length === 0) {
-                // Fallback if global not set yet
-                if (allStakersData && allStakersData.length > 0) {
-                    sortedStakers = [...allStakersData].sort((a, b) => (b.amount || 0) - (a.amount || 0));
-                } else if (currentStats && currentStats.top10 && currentStats.top10.length > 0) {
-                    sortedStakers = currentStats.top10.map(s => ({
-                        address: s.address,
-                        amount: s.amount,
-                        percentage: s.percentage,
-                        quality: s.quality || { score: 0 }
-                    }));
+        const visualizerTooltip = document.getElementById('visualizerTooltip');
+        const isoContainer = document.querySelector('.iso-container');
+
+        const FOUNDATION_SIZE = 340;
+        const FOUNDATION_HEIGHT = 18;
+        const LOWER_HEIGHT = 70;
+        const UPPER_HEIGHT = 60;
+        const CROWN_HEIGHT = 25;
+        const WALL_THICKNESS = 38;
+        const MAX_NODE_MARKERS = 16;
+
+        let visualizerStakers = [];
+
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function computeStadiumProgress(totalStaked) {
+            return {
+                lower: clamp(totalStaked / 250000, 0, 1),
+                upper: clamp((totalStaked - 250000) / 250000, 0, 1),
+                crown: clamp((totalStaked - 500000) / 500000, 0, 1)
+            };
+        }
+
+        function drawFoundation() {
+            drawCube(
+                -FOUNDATION_SIZE / 2,
+                -FOUNDATION_HEIGHT,
+                -FOUNDATION_SIZE / 2,
+                FOUNDATION_SIZE,
+                FOUNDATION_HEIGHT,
+                FOUNDATION_SIZE,
+                {
+                    filled: true,
+                    topColor: '#1D2730',
+                    rightColor: 'rgba(36, 49, 60, 0.85)',
+                    leftColor: 'rgba(30, 40, 50, 0.9)'
                 }
-            }
-            
-            // Show top stakers as satellites (max 16 for visual clarity)
-            const nodeCount = Math.min(sortedStakers.length, 16);
-            const minNodes = Math.min(Math.max(stakerCount, 8), nodeCount);
-            const actualNodeCount = Math.max(minNodes, nodeCount);
-            
-            for (let i = 0; i < actualNodeCount; i++) {
-                const angle = (time * 0.0003 + (i * Math.PI * 2 / actualNodeCount)) % (Math.PI * 2);
-                const x = Math.cos(angle) * orbitRadius;
-                const z = Math.sin(angle) * orbitRadius;
-                const y = -platformH - 120 + Math.sin(time * 0.001 + i) * 15;
-                
-                // Satellite cube - size based on staked amount (if we have data)
-                const stakerData = sortedStakers[i] || null;
-                const baseSize = 15;
-                const sizeMultiplier = stakerData && stakerData.amount ? 
-                    Math.min(1 + (stakerData.amount / 50000) * 0.5, 1.5) : 1;
-                const satSize = baseSize * sizeMultiplier;
-                const satPos2D = iso(x, y + satSize/2, z);
-                
-                // Store position for hover detection
-                satellitePositions.push({
-                    x: satPos2D.x,
-                    y: satPos2D.y,
-                    radius: satSize * 2.5, // Larger clickable area
-                    index: i,
-                    staker: stakerData
-                });
-                
-                // Draw satellite with hover effect
-                const isHovered = hoveredSatellite === i;
-                
-                // Use quality to determine color intensity
-                const quality = stakerData?.quality?.score || 0;
-                const qualityBrightness = quality / 100;
-                
-                drawCube(x - satSize/2, y, z - satSize/2, satSize, satSize, satSize, true);
-                
-                // Highlight on hover
-                if (isHovered) {
-                    ctx.strokeStyle = colors.primary;
-                    ctx.lineWidth = 3;
-                    ctx.globalAlpha = 1;
-                    ctx.beginPath();
-                    ctx.arc(satPos2D.x, satPos2D.y, satSize * 2, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.globalAlpha = 1;
-                    
-                    // Draw label
-                    if (stakerData) {
-                        ctx.fillStyle = colors.primary;
-                        ctx.font = '10px monospace';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(`#${i + 1}`, satPos2D.x, satPos2D.y - satSize * 2.5);
+            );
+
+            // Inner platform
+            const innerSize = FOUNDATION_SIZE * 0.55;
+            drawCube(
+                -innerSize / 2,
+                -FOUNDATION_HEIGHT + 4,
+                -innerSize / 2,
+                innerSize,
+                8,
+                innerSize,
+                {
+                    filled: true,
+                    topColor: '#111920',
+                    rightColor: 'rgba(24, 33, 41, 0.8)',
+                    leftColor: 'rgba(24, 33, 41, 0.85)'
+                }
+            );
+        }
+
+        function drawRingLayer({ outerSize, height, wallThickness, progress, baseY, topColor }) {
+            if (progress <= 0) return;
+            const segmentsPerSide = 14;
+            const totalSegments = segmentsPerSide * 4;
+            const segmentsToDraw = Math.max(1, Math.round(totalSegments * clamp(progress, 0, 1)));
+            const segmentLength = outerSize / segmentsPerSide;
+            const half = outerSize / 2;
+            const wall = wallThickness;
+
+            let drawn = 0;
+
+            const sideColor = topColor.replace('1)', '0.85)');
+
+            const drawSegment = (x, z, width, depth) => {
+                drawCube(
+                    x,
+                    baseY - height,
+                    z,
+                    width,
+                    height,
+                    depth,
+                    {
+                        filled: true,
+                        topColor,
+                        rightColor: sideColor,
+                        leftColor: sideColor
                     }
+                );
+            };
+
+            for (let side = 0; side < 4 && drawn < segmentsToDraw; side++) {
+                for (let i = 0; i < segmentsPerSide && drawn < segmentsToDraw; i++) {
+                    const offset = i * segmentLength;
+                    switch (side) {
+                        case 0: { // North
+                            const x = -half + offset;
+                            drawSegment(x, -half - wall, segmentLength, wall);
+                            break;
+                        }
+                        case 1: { // East
+                            const z = -half + offset;
+                            drawSegment(half, z, wall, segmentLength);
+                            break;
+                        }
+                        case 2: { // South
+                            const x = -half + offset;
+                            drawSegment(x, half, segmentLength, wall);
+                            break;
+                        }
+                        case 3: { // West
+                            const z = -half + offset;
+                            drawSegment(-half - wall, z, wall, segmentLength);
+                            break;
+                        }
+                    }
+                    drawn++;
                 }
-                
-                // Connection line to core
-                const corePos = iso(0, -platformH - towerH/2, 0);
-                const lineOpacity = isHovered ? 0.6 : (0.1 + qualityBrightness * 0.1);
-                drawLine(corePos, satPos2D, colors.tertiary, 1, lineOpacity);
             }
-            
-            // Platform grid
-            const gridStep = baseSize / 6;
-            for (let i = -3; i <= 3; i++) {
-                const offset = i * gridStep;
-                
-                // Parallel to X axis
-                const p1 = iso(-baseSize/2, -platformH, offset);
-                const p2 = iso(baseSize/2, -platformH, offset);
-                drawLine(p1, p2, colors.tertiary, 0.5, 0.3);
-                
-                // Parallel to Z axis
-                const p3 = iso(offset, -platformH, -baseSize/2);
-                const p4 = iso(offset, -platformH, baseSize/2);
-                drawLine(p3, p4, colors.tertiary, 0.5, 0.3);
-            }
-            
-            // Core indicators
-            const indicators = [
-                { x: -towerW/2, z: -towerD/2 },
-                { x: towerW/2, z: -towerD/2 },
-                { x: towerW/2, z: towerD/2 },
-                { x: -towerW/2, z: towerD/2 }
-            ];
-            
-            indicators.forEach((ind, i) => {
-                const yOffset = Math.sin(time * 0.002 + i) * 10;
-                const p = iso(ind.x, -platformH - towerH - 20 + yOffset, ind.z);
-                drawDot(p, 3, colors.primary);
-            });
         }
 
-        function animate() {
+        function drawCenterField() {
+            const fieldSize = FOUNDATION_SIZE * 0.32;
+            drawCube(
+                -fieldSize,
+                -FOUNDATION_HEIGHT + 6,
+                -fieldSize,
+                fieldSize * 2,
+                6,
+                fieldSize * 2,
+                {
+                    filled: true,
+                    topColor: '#101820',
+                    rightColor: 'rgba(16, 24, 32, 0.88)',
+                    leftColor: 'rgba(16, 24, 32, 0.92)'
+                }
+            );
+        }
+
+        function drawCrownDetails(progress) {
+            if (progress <= 0) return;
+            const bannerCount = 8;
+            const radius = FOUNDATION_SIZE / 2 + WALL_THICKNESS / 2;
+            const activeBanners = Math.max(1, Math.round(bannerCount * progress));
+
+            for (let i = 0; i < activeBanners; i++) {
+                const angle = (-Math.PI / 2) + (i * 2 * Math.PI) / bannerCount;
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+                drawCube(
+                    x - 4,
+                    -FOUNDATION_HEIGHT - LOWER_HEIGHT - UPPER_HEIGHT - CROWN_HEIGHT,
+                    z - 4,
+                    8,
+                    CROWN_HEIGHT,
+                    8,
+                    {
+                        filled: true,
+                        topColor: '#6ee7ff',
+                        rightColor: 'rgba(110, 231, 255, 0.75)',
+                        leftColor: 'rgba(110, 231, 255, 0.65)'
+                    }
+                );
+            }
+        }
+
+        function renderVisualizer() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            time++;
-            const stakerCount = currentStats ? currentStats.stadium.totalStakers : 0;
-            drawStation(stakerCount);
-            requestAnimationFrame(animate);
+            if (!currentStats) return;
+            if (window.innerWidth <= 768 && !isoContainer.classList.contains('visible')) {
+                return;
+            }
+
+            const totalStaked = currentStats.stadium?.totalStaked || 0;
+            const progress = computeStadiumProgress(totalStaked);
+
+            drawFoundation();
+
+            drawRingLayer({
+                outerSize: FOUNDATION_SIZE * 0.85,
+                height: LOWER_HEIGHT,
+                wallThickness: WALL_THICKNESS,
+                progress: progress.lower,
+                baseY: -FOUNDATION_HEIGHT,
+                topColor: 'rgba(52, 66, 76, 1)'
+            });
+
+            drawRingLayer({
+                outerSize: FOUNDATION_SIZE * 0.65,
+                height: UPPER_HEIGHT,
+                wallThickness: WALL_THICKNESS * 0.85,
+                progress: progress.upper,
+                baseY: -FOUNDATION_HEIGHT - LOWER_HEIGHT,
+                topColor: 'rgba(66, 82, 94, 1)'
+            });
+
+            drawRingLayer({
+                outerSize: FOUNDATION_SIZE * 0.45,
+                height: CROWN_HEIGHT,
+                wallThickness: WALL_THICKNESS * 0.6,
+                progress: progress.crown,
+                baseY: -FOUNDATION_HEIGHT - LOWER_HEIGHT - UPPER_HEIGHT,
+                topColor: 'rgba(93, 148, 255, 0.9)'
+            });
+
+            drawCrownDetails(progress.crown);
+            drawCenterField();
+
+            drawNodeMarkers();
         }
 
-        // Mouse interaction for 3D blocks
+        function drawNodeMarkers() {
+            nodeMarkers = [];
+            const stakers = visualizerStakers;
+            if (!stakers || stakers.length === 0) return;
+
+            const nodeCount = Math.min(stakers.length, MAX_NODE_MARKERS);
+            const radius = FOUNDATION_SIZE * 0.62;
+            const baseY = -FOUNDATION_HEIGHT - LOWER_HEIGHT - (UPPER_HEIGHT * 0.8);
+            const maxStake = Math.max(...stakers.slice(0, nodeCount).map(s => s.amount || 0), 1);
+
+            for (let i = 0; i < nodeCount; i++) {
+                const staker = stakers[i];
+                const normalized = clamp((staker.amount || 0) / maxStake, 0.2, 1);
+                const size = 14 + normalized * 10;
+                const angle = (-Math.PI / 2) + (i * 2 * Math.PI) / nodeCount;
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+                const quality = staker.quality?.score || 0;
+
+                const topColor = quality >= 70 ? '#73FFE4' : quality >= 40 ? '#73C2FF' : '#A3B3C0';
+                const sideColor = quality >= 70 ? 'rgba(115, 255, 228, 0.7)' : quality >= 40 ? 'rgba(115, 194, 255, 0.7)' : 'rgba(163, 179, 192, 0.7)';
+
+                drawCube(
+                    x - size / 2,
+                    baseY - size,
+                    z - size / 2,
+                    size,
+                    size,
+                    size,
+                    {
+                        filled: true,
+                        topColor,
+                        rightColor: sideColor,
+                        leftColor: sideColor
+                    }
+                );
+
+                const screenPos = iso(x, baseY, z);
+                nodeMarkers.push({
+                    screenX: screenPos.x,
+                    screenY: screenPos.y,
+                    radius: size * 1.4,
+                    staker,
+                    rank: i + 1
+                });
+            }
+        }
+
         function getMousePos(e) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
@@ -1361,58 +1531,66 @@
             };
         }
 
-        function findSatelliteAt(mouseX, mouseY) {
-            for (let i = 0; i < satellitePositions.length; i++) {
-                const sat = satellitePositions[i];
-                const dx = mouseX - sat.x;
-                const dy = mouseY - sat.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance <= sat.radius) {
+        function findMarkerAt(mouseX, mouseY) {
+            for (let i = 0; i < nodeMarkers.length; i++) {
+                const marker = nodeMarkers[i];
+                const dx = mouseX - marker.screenX;
+                const dy = mouseY - marker.screenY;
+                if (Math.sqrt(dx * dx + dy * dy) <= marker.radius) {
                     return i;
                 }
             }
             return null;
         }
 
+        function showTooltip(marker, event) {
+            if (!marker) return;
+            const rect = isoContainer.getBoundingClientRect();
+            visualizerTooltip.style.left = `${event.clientX - rect.left}px`;
+            visualizerTooltip.style.top = `${event.clientY - rect.top}px`;
+            visualizerTooltip.innerHTML = `
+                <strong>#${marker.rank} · ${formatAddress(marker.staker.address)}</strong>
+                <span>${formatNumber(marker.staker.amount || 0)} SYND</span>
+                <span>Quality ${marker.staker.quality?.score ?? 0}/100</span>
+            `;
+            visualizerTooltip.style.display = 'block';
+        }
+
+        function hideTooltip() {
+            visualizerTooltip.style.display = 'none';
+        }
+
         canvas.addEventListener('mousemove', (e) => {
             const mousePos = getMousePos(e);
-            const satIndex = findSatelliteAt(mousePos.x, mousePos.y);
-            
-            if (satIndex !== null && satIndex !== hoveredSatellite) {
-                hoveredSatellite = satIndex;
+            const markerIndex = findMarkerAt(mousePos.x, mousePos.y);
+
+            if (markerIndex !== null && markerIndex !== hoveredMarker) {
+                hoveredMarker = markerIndex;
                 canvas.style.cursor = 'pointer';
-                
-                // Show tooltip or highlight
-                const sat = satellitePositions[satIndex];
-                if (sat.staker) {
-                    canvas.title = `${formatAddress(sat.staker.address)} - ${formatNumber(sat.staker.amount)} SYND`;
-                }
-            } else if (satIndex === null && hoveredSatellite !== null) {
-                hoveredSatellite = null;
+                showTooltip(nodeMarkers[markerIndex], e);
+            } else if (markerIndex === null) {
+                hoveredMarker = null;
                 canvas.style.cursor = 'default';
-                canvas.title = '';
+                hideTooltip();
             }
         });
 
         canvas.addEventListener('click', (e) => {
             const mousePos = getMousePos(e);
-            const satIndex = findSatelliteAt(mousePos.x, mousePos.y);
-            
-            if (satIndex !== null) {
-                const sat = satellitePositions[satIndex];
-                if (sat.staker) {
-                    showNodeDetails(sat.staker.address);
+            const markerIndex = findMarkerAt(mousePos.x, mousePos.y);
+            if (markerIndex !== null) {
+                const marker = nodeMarkers[markerIndex];
+                if (marker?.staker?.address) {
+                    showNodeDetails(marker.staker.address);
                 }
             }
         });
 
         canvas.addEventListener('mouseleave', () => {
-            hoveredSatellite = null;
+            hoveredMarker = null;
             canvas.style.cursor = 'default';
-            canvas.title = '';
+            hideTooltip();
         });
-
-        animate();
 
         function updateUI(stats) {
             currentStats = stats;
@@ -1467,6 +1645,29 @@
             const networkShare = stats.stadium.networkShare || 0;
             document.getElementById('networkShare').textContent = `${typeof networkShare === 'number' ? networkShare.toFixed(2) : '0.00'}%`;
             document.getElementById('rank').textContent = `#${stats.stadium.rank || '-'}`;
+
+            const emissions = stats.emissions || {};
+            const emissionPerEpoch = typeof emissions.stadiumEmissionPerEpoch === 'number' ? emissions.stadiumEmissionPerEpoch : 0;
+            const emissionPerDay = typeof emissions.stadiumEmissionPerDay === 'number' ? emissions.stadiumEmissionPerDay : 0;
+            const epochLabel = emissions.epochNumber ? `Epoch ${emissions.epochNumber}` : 'Epoch --';
+            const poolSharePct = typeof emissions.appchainPoolShare === 'number' ? (emissions.appchainPoolShare * 100).toFixed(0) : null;
+            const poolLabel = poolSharePct ? `${poolSharePct}% appchain pool` : 'Appchain pool';
+            const epochDuration = emissions.epochDurationDays || 30;
+
+            const emissionEpochEl = document.getElementById('emissionEpoch');
+            const emissionEpochDetailEl = document.getElementById('emissionEpochDetail');
+            const emissionDayEl = document.getElementById('emissionDay');
+            const emissionDayDetailEl = document.getElementById('emissionDayDetail');
+
+            if (emissionEpochEl && emissionEpochDetailEl) {
+                emissionEpochEl.textContent = `${formatNumber(emissionPerEpoch)} SYND`;
+                emissionEpochDetailEl.textContent = `${epochLabel} · ${poolLabel}`;
+            }
+
+            if (emissionDayEl && emissionDayDetailEl) {
+                emissionDayEl.textContent = `${formatNumber(emissionPerDay)} SYND`;
+                emissionDayDetailEl.textContent = `Based on ${epochDuration}-day epoch`;
+            }
 
             // Update node grid with clickable nodes and quality indicators
             const nodeGrid = document.getElementById('nodeGrid');
@@ -1523,17 +1724,8 @@
                 nodeGrid.appendChild(node);
             }
             
-            // Store sorted stakers globally for visualizer
-            window.sortedStakersForVisualizer = sortedStakers;
-            
-            // Debug log
-            console.log('Node grid update:', {
-                totalStakers,
-                allStakersDataLength: allStakersData?.length || 0,
-                sortedStakersLength: sortedStakers.length,
-                activeNodeCount,
-                firstStaker: sortedStakers[0]?.address
-            });
+            visualizerStakers = sortedStakers;
+            renderVisualizer();
 
             // Update network position
             const totalNetwork = (stats.ecosystem || []).reduce((sum, item) => sum + (item.total || 0), 0);
@@ -1586,13 +1778,13 @@
                 snapshotsList.innerHTML = data.snapshots.map(snapshot => {
                     const date = new Date(snapshot.date);
                     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    return `
+                return `
                         <div class="mini-stat" style="cursor: pointer;" onclick="showSnapshotDetails('${snapshot.date}')">
                             <span class="mini-stat-label">${dateStr}</span>
                             <span class="mini-stat-value">${formatNumber(snapshot.totalStaked)} SYND</span>
-                        </div>
-                    `;
-                }).join('');
+                            </div>
+                `;
+            }).join('');
             } catch (error) {
                 console.error('Error loading snapshots:', error);
             }
@@ -1736,6 +1928,8 @@
                     charts.mobileDailyFlow = null;
                     charts.mobileStakerGrowth = null;
                 }
+                renderVisualizer();
+                hideTooltip();
             }, 250);
         });
 
@@ -1774,9 +1968,9 @@
                 } else {
                     // Create desktop charts
                     if (charts.totalStaked) return; // Already loaded
-                    createTotalStakedChart(trends);
-                    createDailyFlowChart(trends);
-                    createStakerGrowthChart(trends);
+                createTotalStakedChart(trends);
+                createDailyFlowChart(trends);
+                createStakerGrowthChart(trends);
                 }
             } catch (error) {
                 console.error('Error loading charts:', error);
@@ -1999,14 +2193,14 @@
                     },
                     scales: {
                         x: {
-                            ticks: { 
-                                color: CHART_COLORS.textSecondary, 
+                            ticks: {
+                                color: CHART_COLORS.textSecondary,
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 maxRotation: 45,
                                 minRotation: 45,
                                 padding: 8
-                            }, 
-                            grid: { 
+                            },
+                            grid: {
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2019,9 +2213,9 @@
                                 padding: { top: 10 }
                             }
                         },
-                        y: { 
-                            ticks: { 
-                                color: CHART_COLORS.textSecondary, 
+                        y: {
+                            ticks: {
+                                color: CHART_COLORS.textSecondary,
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 padding: 8,
                                 callback: function(v) {
@@ -2029,8 +2223,8 @@
                                     if (v >= 1000) return (v/1000).toFixed(0) + 'K';
                                     return v.toFixed(0);
                                 }
-                            }, 
-                            grid: { 
+                            },
+                            grid: {
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2047,7 +2241,7 @@
                 }
             });
         }
-
+        
         function createDailyFlowChart(trends) {
             const ctx = document.getElementById('dailyFlowChart').getContext('2d');
             if (charts.dailyFlow) charts.dailyFlow.destroy();
@@ -2057,16 +2251,16 @@
                 data: {
                     labels: trends.map(t => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
                     datasets: [
-                        { 
+                        {
                             label: 'Stakes', 
-                            data: trends.map(t => t.stakes), 
+                            data: trends.map(t => t.stakes),
                             backgroundColor: CHART_COLORS.primary,
                             borderColor: CHART_COLORS.primary,
                             borderWidth: 2
                         },
-                        { 
+                        {
                             label: 'Unstakes', 
-                            data: trends.map(t => -t.unstakes), 
+                            data: trends.map(t => -t.unstakes),
                             backgroundColor: CHART_COLORS.secondary,
                             borderColor: CHART_COLORS.secondary,
                             borderWidth: 2
@@ -2117,14 +2311,14 @@
                     scales: {
                         x: {
                             stacked: false,
-                            ticks: { 
-                                color: CHART_COLORS.textSecondary, 
+                            ticks: {
+                                color: CHART_COLORS.textSecondary,
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 maxRotation: 45,
                                 minRotation: 45,
                                 padding: 8
-                            }, 
-                            grid: { 
+                            },
+                            grid: {
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2139,8 +2333,8 @@
                         },
                         y: {
                             stacked: false,
-                            ticks: { 
-                                color: CHART_COLORS.textSecondary, 
+                            ticks: {
+                                color: CHART_COLORS.textSecondary,
                                 font: { size: 11, weight: '500' },
                                 padding: 8,
                                 callback: function(v) {
@@ -2149,8 +2343,8 @@
                                     if (abs >= 1000) return (abs/1000).toFixed(0) + 'K';
                                     return abs.toFixed(0);
                                 }
-                            }, 
-                            grid: { 
+                            },
+                            grid: {
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2168,7 +2362,7 @@
                 }
             });
         }
-
+        
         function createStakerGrowthChart(trends) {
             const ctx = document.getElementById('stakerGrowthChart').getContext('2d');
             if (charts.stakerGrowth) charts.stakerGrowth.destroy();
@@ -2184,11 +2378,11 @@
                     datasets: [
                         {
                             label: 'Total Stakers',
-                            data: trends.map(t => t.totalStakers),
-                            borderColor: CHART_COLORS.secondary,
+                        data: trends.map(t => t.totalStakers),
+                        borderColor: CHART_COLORS.secondary,
                             backgroundColor: 'rgba(176, 184, 192, 0.15)',
                             borderWidth: 3,
-                            fill: true,
+                        fill: true,
                             tension: 0.4,
                             pointRadius: 4,
                             pointHoverRadius: 6,
@@ -2205,7 +2399,7 @@
                             borderWidth: 2,
                             borderDash: [8, 4],
                             fill: false,
-                            tension: 0.1,
+                        tension: 0.1,
                             pointRadius: 3,
                             pointHoverRadius: 5,
                             pointBackgroundColor: CHART_COLORS.primary,
@@ -2265,14 +2459,14 @@
                     },
                     scales: {
                         x: {
-                            ticks: { 
-                                color: CHART_COLORS.textSecondary, 
+                            ticks: {
+                                color: CHART_COLORS.textSecondary,
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 maxRotation: 45,
                                 minRotation: 45,
                                 padding: 8
-                            }, 
-                            grid: { 
+                            },
+                            grid: {
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2288,13 +2482,13 @@
                         y: {
                             type: 'linear',
                             position: 'left',
-                            ticks: { 
+                            ticks: {
                                 color: CHART_COLORS.secondary, 
                                 font: { family: CHART_COLORS.fontFamily, size: 11, weight: '500' },
                                 padding: 8,
                                 stepSize: 1
-                            }, 
-                            grid: { 
+                            },
+                            grid: {
                                 color: CHART_COLORS.grid,
                                 drawBorder: false,
                                 lineWidth: 1
@@ -2442,24 +2636,25 @@
 
         // Mobile visualizer toggle
         function toggleVisualizer() {
-            const isoContainer = document.querySelector('.iso-container');
             const toggle = document.getElementById('visualizerToggle');
             
             if (isoContainer.classList.contains('visible')) {
                 isoContainer.classList.remove('visible');
                 toggle.textContent = 'SHOW VISUALIZER';
+                hideTooltip();
             } else {
                 isoContainer.classList.add('visible');
                 toggle.textContent = 'HIDE VISUALIZER';
+                renderVisualizer();
             }
         }
 
         // Handle window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) {
-                const isoContainer = document.querySelector('.iso-container');
                 isoContainer.classList.remove('visible');
             }
+            renderVisualizer();
         });
     </script>
 </body>
