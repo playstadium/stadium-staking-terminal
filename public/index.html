@@ -593,6 +593,111 @@
             height: 280px;
         }
 
+        .stadium-stage-indicator {
+            position: absolute;
+            top: 28px;
+            left: 28px;
+            background: rgba(15, 20, 25, 0.9);
+            border: 1px solid rgba(72, 90, 105, 0.6);
+            border-radius: 10px;
+            padding: 16px 20px;
+            width: 260px;
+            color: var(--text-primary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 16px 40px rgba(8, 12, 16, 0.4);
+        }
+
+        .stadium-stage-indicator .stage-header {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        .stadium-stage-indicator .stage-section {
+            margin-bottom: 12px;
+        }
+
+        .stadium-stage-indicator .stage-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .stadium-stage-indicator .stage-value {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .stadium-stage-indicator .stage-desc {
+            font-size: 10px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-top: 4px;
+        }
+
+        .stadium-stage-indicator .stage-progress {
+            position: relative;
+            height: 6px;
+            background: rgba(36, 47, 56, 0.8);
+            border-radius: 4px;
+            margin: 10px 0 6px;
+            overflow: hidden;
+        }
+
+        .stadium-stage-indicator .stage-progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #73FFE4 0%, #4CB8FF 100%);
+        }
+
+        .stadium-stage-indicator .stage-progress-text,
+        .stadium-stage-indicator .stage-goal {
+            font-size: 10px;
+            color: var(--text-secondary);
+            letter-spacing: 0.4px;
+        }
+
+        .stadium-stage-indicator .stage-divider {
+            height: 1px;
+            background: rgba(58, 72, 84, 0.6);
+            margin: 12px 0;
+        }
+
+        @media (max-width: 1024px) {
+            .stadium-stage-indicator {
+                top: 20px;
+                left: 20px;
+                width: 220px;
+                padding: 14px 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stadium-stage-indicator {
+                top: 16px;
+                left: 16px;
+                right: 16px;
+                width: auto;
+                padding: 12px 14px;
+                font-size: 10px;
+                display: none;
+            }
+
+            .iso-container.visible .stadium-stage-indicator {
+                display: block;
+            }
+        }
+
         .visualizer-tooltip {
             position: absolute;
             background: rgba(15, 20, 25, 0.92);
@@ -923,6 +1028,25 @@
             </div>
             <div class="iso-label label-top">STAKING INFRASTRUCTURE</div>
             <div class="iso-label label-bottom">APPCHAIN 574014</div>
+            <div class="stadium-stage-indicator" id="stadiumStageIndicator">
+                <div class="stage-header">Stadium Build Campaign</div>
+                <div class="stage-section">
+                    <div class="stage-label">Current Stage</div>
+                    <div class="stage-value" id="stageCurrentLabel">Foundation</div>
+                    <div class="stage-desc" id="stageCurrentDescription">Laying the foundation structure.</div>
+                    <div class="stage-progress">
+                        <div class="stage-progress-fill" id="stageProgressFill"></div>
+                    </div>
+                    <div class="stage-progress-text" id="stageProgressText">0 / 250K SYND</div>
+                </div>
+                <div class="stage-divider"></div>
+                <div class="stage-section">
+                    <div class="stage-label">Next Unlock</div>
+                    <div class="stage-value" id="stageNextLabel">Lower Bowl</div>
+                    <div class="stage-desc" id="stageNextDescription">Raise the lower seating bowl.</div>
+                    <div class="stage-goal" id="stageNextGoal">Unlock at 250K SYND</div>
+                </div>
+            </div>
             <canvas id="isoCanvas" width="900" height="900"></canvas>
             <div class="visualizer-tooltip" id="visualizerTooltip"></div>
             
@@ -955,7 +1079,7 @@
         <div class="data-panels">
             <div class="header-section">
                 <div class="main-title">Stadium Terminal</div>
-                <div class="subtitle">Syndicate Commons Network</div>
+                <div class="subtitle">Staking tracker for Stadium appchain</div>
                 <div>
                     <span class="status-badge" id="statusBadge">
                         <span class="status-dot"></span>
@@ -1171,6 +1295,37 @@
             subtle: 'rgba(255, 255, 255, 0.1)'
         };
 
+        const STADIUM_STAGES = [
+            {
+                id: 'foundation',
+                label: 'Foundation',
+                min: 0,
+                max: 250000,
+                description: 'Lay structural supports, utilities, and access tunnels.'
+            },
+            {
+                id: 'lower-bowl',
+                label: 'Lower Bowl',
+                min: 250000,
+                max: 500000,
+                description: 'Raise lower seating bowl and concourse infrastructure.'
+            },
+            {
+                id: 'upper-bowl',
+                label: 'Upper Bowl',
+                min: 500000,
+                max: 1000000,
+                description: 'Complete upper seating tiers and broadcast decks.'
+            },
+            {
+                id: 'illumination',
+                label: 'Illumination',
+                min: 1000000,
+                max: Infinity,
+                description: 'Light the crown, open the gates, and celebrate a live stadium.'
+            }
+        ];
+
         // Isometric projection
         function iso(x, y, z) {
             return {
@@ -1279,6 +1434,19 @@
 
         function clamp(value, min, max) {
             return Math.min(Math.max(value, min), max);
+        }
+
+        function formatCompact(amount) {
+            if (amount === Infinity) return '∞';
+            if (amount >= 1000000) {
+                const value = (amount / 1000000).toFixed(1);
+                return `${value.replace(/\.0$/, '')}M`;
+            }
+            if (amount >= 1000) {
+                const value = (amount / 1000).toFixed(0);
+                return `${value}K`;
+            }
+            return amount.toLocaleString('en-US');
         }
 
         function computeStadiumProgress(totalStaked) {
@@ -1521,6 +1689,50 @@
             }
         }
 
+        function updateStageIndicator(totalStaked) {
+            const indicator = document.getElementById('stadiumStageIndicator');
+            if (!indicator) return;
+
+            const stageCurrentLabel = document.getElementById('stageCurrentLabel');
+            const stageCurrentDescription = document.getElementById('stageCurrentDescription');
+            const stageProgressFill = document.getElementById('stageProgressFill');
+            const stageProgressText = document.getElementById('stageProgressText');
+            const stageNextLabel = document.getElementById('stageNextLabel');
+            const stageNextDescription = document.getElementById('stageNextDescription');
+            const stageNextGoal = document.getElementById('stageNextGoal');
+
+            const currentStage = STADIUM_STAGES.find(stage => totalStaked < stage.max) || STADIUM_STAGES[STADIUM_STAGES.length - 1];
+            const currentIndex = STADIUM_STAGES.indexOf(currentStage);
+            const nextStage = currentStage.max === Infinity ? null : STADIUM_STAGES[currentIndex + 1] || null;
+
+            const stageMin = currentStage.min;
+            const stageMax = currentStage.max;
+            const stageProgress = stageMax === Infinity ? 1 : clamp((totalStaked - stageMin) / (stageMax - stageMin), 0, 1);
+
+            if (stageCurrentLabel) stageCurrentLabel.textContent = currentStage.label;
+            if (stageCurrentDescription) stageCurrentDescription.textContent = currentStage.description;
+            if (stageProgressFill) stageProgressFill.style.width = `${stageProgress * 100}%`;
+
+            if (stageProgressText) {
+                if (stageMax === Infinity) {
+                    stageProgressText.textContent = `${formatNumber(totalStaked)} SYND staked`;
+                } else {
+                    const currentValue = clamp(totalStaked, stageMin, stageMax);
+                    stageProgressText.textContent = `${formatCompact(currentValue)} / ${formatCompact(stageMax)} SYND`;
+                }
+            }
+
+            if (nextStage) {
+                if (stageNextLabel) stageNextLabel.textContent = nextStage.label;
+                if (stageNextDescription) stageNextDescription.textContent = nextStage.description;
+                if (stageNextGoal) stageNextGoal.textContent = `Unlock at ${formatCompact(nextStage.min)} SYND`;
+            } else {
+                if (stageNextLabel) stageNextLabel.textContent = 'Stadium Complete';
+                if (stageNextDescription) stageNextDescription.textContent = 'All construction phases are complete.';
+                if (stageNextGoal) stageNextGoal.textContent = 'Thank you for helping complete Stadium Terminal.';
+            }
+        }
+
         function getMousePos(e) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
@@ -1634,6 +1846,8 @@
             
             // Store all stakers for node details
             allStakersData = stats.allStakers || [];
+
+            updateStageIndicator(totalStaked);
 
             // Update metrics
             const totalStakers = stats.stadium.totalStakers;
