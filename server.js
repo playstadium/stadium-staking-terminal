@@ -3,6 +3,47 @@ const cors = require('cors');
 const fetch = require('node-fetch');
 const path = require('path');
 
+let kv;
+try {
+    ({ kv } = require('@vercel/kv'));
+} catch (error) {
+    console.warn('Vercel KV module not available:', error.message);
+}
+
+let Redis;
+try {
+    Redis = require('ioredis');
+} catch (error) {
+    console.warn('ioredis module not available:', error.message);
+}
+
+const KV_ENABLED = Boolean(
+    kv &&
+    ((process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) ||
+     (process.env.KV_URL && process.env.KV_REST_API_TOKEN))
+);
+const REDIS_URL = process.env.stadium_terminal_REDIS_URL ||
+    process.env.STADIUM_TERMINAL_REDIS_URL ||
+    process.env.REDIS_URL;
+const REDIS_ENABLED = Boolean(Redis && REDIS_URL);
+let redisClient = null;
+
+if (REDIS_ENABLED) {
+    redisClient = new Redis(REDIS_URL, {
+        lazyConnect: true,
+        maxRetriesPerRequest: 1
+    });
+    redisClient.on('error', (error) => {
+        console.error('Redis error:', error);
+    });
+}
+
+const STORAGE_MODE = KV_ENABLED ? 'kv' : (REDIS_ENABLED ? 'redis' : 'memory');
+const PERSISTENCE_ENABLED = STORAGE_MODE !== 'memory';
+const SNAPSHOT_LIMIT = 52;
+const SNAPSHOT_LIST_KEY = 'snapshots:list';
+const SNAPSHOT_ITEM_PREFIX = 'snapshot:';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -42,8 +83,17 @@ let priceCache = {
     ttl: 2 * 60 * 1000 // 2 minutes
 };
 
-// Snapshot storage (in-memory, could be moved to file/db later)
+// Snapshot storage (with optional Vercel KV persistence)
 let snapshots = [];
+let snapshotsLoaded = false;
+
+if (STORAGE_MODE === 'kv') {
+    console.log('📦 Vercel KV persistence enabled for snapshots');
+} else if (STORAGE_MODE === 'redis') {
+    console.log('📦 Redis persistence enabled for snapshots');
+} else {
+    console.log('📦 Using in-memory snapshot storage (non-persistent)');
+}
 
 // Check if it's Friday and time to take a snapshot
 function shouldTakeSnapshot() {
@@ -55,11 +105,267 @@ function shouldTakeSnapshot() {
     return dayOfWeek === 5 && hour === 12;
 }
 
+function getMostRecentFriday() {
+    const now = new Date();
+    now.setUTCHours(0, 0, 0, 0);
+    const day = now.getUTCDay(); // 0 Sunday ... 5 Friday
+    const diff = (day >= 5) ? day - 5 : day + 2; // days since Friday
+    now.setUTCDate(now.getUTCDate() - diff);
+    return now.toISOString().split('T')[0];
+}
+
+async function ensureSnapshotsLoadedFromStorage(force = false) {
+    if (!PERSISTENCE_ENABLED) return;
+    if (snapshotsLoaded && !force) return;
+    
+    const { snapshots: storedSnapshots } = await fetchSnapshotsFromStorage(SNAPSHOT_LIMIT);
+    snapshots = storedSnapshots
+        .slice()
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    snapshotsLoaded = true;
+}
+
+async function fetchSnapshotsFromStorage(limit = SNAPSHOT_LIMIT) {
+    if (!PERSISTENCE_ENABLED) {
+        const ordered = snapshots
+            .slice()
+            .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        return {
+            snapshots: ordered.slice(0, limit),
+            total: snapshots.length
+        };
+    }
+
+    if (STORAGE_MODE === 'kv') {
+        try {
+            const total = await kv.zcard(SNAPSHOT_LIST_KEY);
+            if (!total || total <= 0) {
+                return { snapshots: [], total: 0 };
+            }
+
+            const rangeLimit = Math.min(limit, total) - 1;
+            const dates = await kv.zrange(
+                SNAPSHOT_LIST_KEY,
+                0,
+                rangeLimit >= 0 ? rangeLimit : 0,
+                { rev: true }
+            );
+
+            if (!dates || dates.length === 0) {
+                return { snapshots: [], total };
+            }
+
+            const items = await Promise.all(
+                dates.map(date => kv.get(`${SNAPSHOT_ITEM_PREFIX}${date}`))
+            );
+
+            const validSnapshots = [];
+            items.forEach((snapshot) => {
+                if (!snapshot) return;
+                validSnapshots.push(snapshot);
+            });
+
+            validSnapshots.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            return {
+                snapshots: validSnapshots,
+                total
+            };
+        } catch (error) {
+            console.error('Error fetching snapshots from KV:', error);
+            return { snapshots: [], total: 0 };
+        }
+    }
+
+    if (STORAGE_MODE === 'redis') {
+        try {
+            if (redisClient.status === 'wait') {
+                await redisClient.connect();
+            }
+
+            const total = await redisClient.zcard(SNAPSHOT_LIST_KEY);
+            if (!total || total <= 0) {
+                return { snapshots: [], total: 0 };
+            }
+
+            const rangeLimit = Math.min(limit, total) - 1;
+            const dates = await redisClient.zrevrange(
+                SNAPSHOT_LIST_KEY,
+                0,
+                rangeLimit >= 0 ? rangeLimit : 0
+            );
+
+            if (!dates || dates.length === 0) {
+                return { snapshots: [], total };
+            }
+
+            const keys = dates.map(date => `${SNAPSHOT_ITEM_PREFIX}${date}`);
+            const items = await redisClient.mget(keys);
+
+            const validSnapshots = [];
+            items.forEach((raw, idx) => {
+                if (!raw) return;
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (parsed) {
+                        validSnapshots.push(parsed);
+                    }
+                } catch (error) {
+                    console.error(`Error parsing snapshot ${dates[idx]} from Redis:`, error);
+                }
+            });
+
+            validSnapshots.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            return {
+                snapshots: validSnapshots,
+                total
+            };
+        } catch (error) {
+            console.error('Error fetching snapshots from Redis:', error);
+            return { snapshots: [], total: 0 };
+        }
+    }
+
+    return { snapshots: [], total: 0 };
+}
+
+async function pruneSnapshotsInStorage(limit = SNAPSHOT_LIMIT) {
+    if (!PERSISTENCE_ENABLED) return;
+
+    if (STORAGE_MODE === 'kv') {
+        try {
+            const total = await kv.zcard(SNAPSHOT_LIST_KEY);
+            if (!total || total <= limit) return;
+
+            const removeCount = total - limit;
+            const datesToRemove = await kv.zrange(
+                SNAPSHOT_LIST_KEY,
+                0,
+                removeCount - 1
+            );
+
+            if (!datesToRemove || datesToRemove.length === 0) return;
+
+            const pipeline = kv.pipeline();
+            datesToRemove.forEach(date => {
+                pipeline.del(`${SNAPSHOT_ITEM_PREFIX}${date}`);
+            });
+            pipeline.zrem(SNAPSHOT_LIST_KEY, ...datesToRemove);
+            await pipeline.exec();
+        } catch (error) {
+            console.error('Error pruning snapshots in KV:', error);
+        }
+        return;
+    }
+
+    if (STORAGE_MODE === 'redis') {
+        try {
+            if (redisClient.status === 'wait') {
+                await redisClient.connect();
+            }
+
+            const total = await redisClient.zcard(SNAPSHOT_LIST_KEY);
+            if (!total || total <= limit) return;
+
+            const removeCount = total - limit;
+            const datesToRemove = await redisClient.zrange(
+                SNAPSHOT_LIST_KEY,
+                0,
+                removeCount - 1
+            );
+
+            if (!datesToRemove || datesToRemove.length === 0) return;
+
+            const pipeline = redisClient.multi();
+            datesToRemove.forEach(date => {
+                pipeline.del(`${SNAPSHOT_ITEM_PREFIX}${date}`);
+            });
+            pipeline.zrem(SNAPSHOT_LIST_KEY, ...datesToRemove);
+            await pipeline.exec();
+        } catch (error) {
+            console.error('Error pruning snapshots in Redis:', error);
+        }
+    }
+}
+
+async function persistSnapshotToStorage(snapshot) {
+    if (!PERSISTENCE_ENABLED) return;
+
+    if (STORAGE_MODE === 'kv') {
+        try {
+            const pipeline = kv.pipeline();
+            pipeline.set(`${SNAPSHOT_ITEM_PREFIX}${snapshot.date}`, snapshot);
+            pipeline.zadd(SNAPSHOT_LIST_KEY, {
+                score: snapshot.timestamp,
+                member: snapshot.date
+            });
+            await pipeline.exec();
+
+            await pruneSnapshotsInStorage(SNAPSHOT_LIMIT);
+        } catch (error) {
+            console.error('Error persisting snapshot to KV:', error);
+        }
+        return;
+    }
+
+    if (STORAGE_MODE === 'redis') {
+        try {
+            if (redisClient.status === 'wait') {
+                await redisClient.connect();
+            }
+
+            const pipeline = redisClient.multi();
+            pipeline.set(`${SNAPSHOT_ITEM_PREFIX}${snapshot.date}`, JSON.stringify(snapshot));
+            pipeline.zadd(SNAPSHOT_LIST_KEY, snapshot.timestamp || Date.now(), snapshot.date);
+            await pipeline.exec();
+
+            await pruneSnapshotsInStorage(SNAPSHOT_LIMIT);
+        } catch (error) {
+            console.error('Error persisting snapshot to Redis:', error);
+        }
+    }
+}
+
+async function hasSnapshotForDate(date) {
+    if (STORAGE_MODE === 'kv') {
+        try {
+            const existing = await kv.get(`${SNAPSHOT_ITEM_PREFIX}${date}`);
+            return Boolean(existing);
+        } catch (error) {
+            console.error('Error checking snapshot existence in KV:', error);
+            return false;
+        }
+    }
+
+    if (STORAGE_MODE === 'redis') {
+        try {
+            if (redisClient.status === 'wait') {
+                await redisClient.connect();
+            }
+            const existing = await redisClient.exists(`${SNAPSHOT_ITEM_PREFIX}${date}`);
+            return existing === 1;
+        } catch (error) {
+            console.error('Error checking snapshot existence in Redis:', error);
+            return false;
+        }
+    }
+
+    return snapshots.some(s => s.date === date);
+}
+
 // Take a snapshot of top 10
-function takeSnapshot(stats) {
+async function takeSnapshot(stats, options = {}) {
+    const { date: overrideDate, timestamp: overrideTimestamp } = options;
+    const dateISO = overrideDate || new Date().toISOString().split('T')[0];
+    let computedTimestamp = overrideTimestamp ?? new Date(`${dateISO}T12:00:00Z`).getTime();
+    if (!Number.isFinite(computedTimestamp)) {
+        computedTimestamp = Date.now();
+    }
+
     const snapshot = {
-        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-        timestamp: Date.now(),
+        date: dateISO, // YYYY-MM-DD
+        timestamp: computedTimestamp,
         totalStaked: stats.stadium.totalStaked,
         totalStakers: stats.stadium.totalStakers,
         rank: stats.stadium.rank,
@@ -73,12 +379,19 @@ function takeSnapshot(stats) {
         }))
     };
     
+    await ensureSnapshotsLoadedFromStorage();
+
+    snapshots = snapshots.filter(s => s.date !== snapshot.date);
     snapshots.push(snapshot);
+    snapshots.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     
     // Keep only last 52 snapshots (1 year of weekly data)
-    if (snapshots.length > 52) {
-        snapshots = snapshots.slice(-52);
+    if (snapshots.length > SNAPSHOT_LIMIT) {
+        snapshots = snapshots.slice(-SNAPSHOT_LIMIT);
     }
+    snapshotsLoaded = true;
+
+    await persistSnapshotToStorage(snapshot);
     
     console.log(`📸 Snapshot taken: ${snapshot.date} - ${snapshot.totalStaked.toFixed(2)} SYND staked`);
     return snapshot;
@@ -86,7 +399,7 @@ function takeSnapshot(stats) {
 
 // Check for snapshot on startup and set up weekly check
 let lastSnapshotCheck = Date.now();
-setInterval(() => {
+setInterval(async () => {
     const now = Date.now();
     // Check every hour
     if (now - lastSnapshotCheck > 60 * 60 * 1000) {
@@ -94,10 +407,14 @@ setInterval(() => {
         if (shouldTakeSnapshot()) {
             // Check if we already took a snapshot today
             const today = new Date().toISOString().split('T')[0];
-            const alreadySnapped = snapshots.some(s => s.date === today);
-            
-            if (!alreadySnapped && cache.data) {
-                takeSnapshot(cache.data);
+            try {
+                const alreadySnapped = await hasSnapshotForDate(today);
+                
+                if (!alreadySnapped && cache.data) {
+                    await takeSnapshot(cache.data);
+                }
+            } catch (error) {
+                console.error('Error during scheduled snapshot check:', error);
             }
         }
     }
@@ -572,9 +889,9 @@ app.get('/api/stats', async (req, res) => {
         // Check if we should take a snapshot
         if (shouldTakeSnapshot()) {
             const today = new Date().toISOString().split('T')[0];
-            const alreadySnapped = snapshots.some(s => s.date === today);
+            const alreadySnapped = await hasSnapshotForDate(today);
             if (!alreadySnapped) {
-                takeSnapshot(stats);
+                await takeSnapshot(stats);
             }
         }
 
@@ -741,13 +1058,98 @@ app.get('/api/price', async (req, res) => {
     }
 });
 
-// Snapshots endpoint
-app.get('/api/snapshots', (req, res) => {
+// Manual snapshot endpoint
+app.post('/api/snapshots/manual', async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || 52;
-        const sortedSnapshots = [...snapshots].sort((a, b) => 
+        const secret = process.env.SNAPSHOT_SECRET;
+        if (secret) {
+            const providedSecret = req.headers['x-snapshot-secret'] || req.body?.secret;
+            if (providedSecret !== secret) {
+                return res.status(403).json({
+                    error: 'Forbidden',
+                    message: 'Invalid snapshot secret'
+                });
+            }
+        }
+
+        const requestedDate = (req.body && typeof req.body.date === 'string') ? req.body.date.trim() : '';
+        let snapshotDate = requestedDate || getMostRecentFriday();
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(snapshotDate)) {
+            return res.status(400).json({
+                error: 'Invalid date format',
+                message: 'Expected YYYY-MM-DD'
+            });
+        }
+
+        const snapshotTimestamp = new Date(`${snapshotDate}T12:00:00Z`).getTime();
+        if (!Number.isFinite(snapshotTimestamp)) {
+            return res.status(400).json({
+                error: 'Invalid date',
+                message: 'Unable to parse provided date'
+            });
+        }
+
+        const alreadySnapped = await hasSnapshotForDate(snapshotDate);
+        if (alreadySnapped) {
+            return res.status(409).json({
+                error: 'Snapshot exists',
+                message: `Snapshot for ${snapshotDate} already exists`
+            });
+        }
+
+        let stats;
+        const now = Date.now();
+        if (req.body && req.body.useCache && cache.data && cache.timestamp && (now - cache.timestamp < cache.ttl)) {
+            stats = cache.data;
+        } else {
+            stats = await fetchStakingData();
+            cache.data = stats;
+            cache.timestamp = now;
+        }
+
+        const snapshot = await takeSnapshot(stats, {
+            date: snapshotDate,
+            timestamp: snapshotTimestamp
+        });
+
+        res.json({
+            snapshot,
+            persisted: PERSISTENCE_ENABLED
+        });
+    } catch (error) {
+        console.error('Manual snapshot error:', error);
+        res.status(500).json({
+            error: 'Failed to create snapshot',
+            message: error.message
+        });
+    }
+});
+
+// Snapshots endpoint
+app.get('/api/snapshots', async (req, res) => {
+    try {
+        const limitParam = parseInt(req.query.limit, 10);
+        const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, SNAPSHOT_LIMIT) : SNAPSHOT_LIMIT;
+
+        if (PERSISTENCE_ENABLED) {
+            const { snapshots: latestSnapshots, total } = await fetchSnapshotsFromStorage(limit);
+
+            snapshots = latestSnapshots
+                .slice()
+                .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            snapshotsLoaded = true;
+
+            return res.json({
+                snapshots: latestSnapshots.slice(0, limit),
+                total
+            });
+        }
+
+        const sortedSnapshots = [...snapshots].sort((a, b) =>
             new Date(b.date) - new Date(a.date)
         );
+
         res.json({
             snapshots: sortedSnapshots.slice(0, limit),
             total: snapshots.length
@@ -762,7 +1164,61 @@ app.get('/api/snapshots', (req, res) => {
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+    let snapshotInfo = {
+        count: snapshots.length,
+        latest: snapshots.length > 0 ? snapshots[snapshots.length - 1].date : null
+    };
+
+    if (STORAGE_MODE === 'kv') {
+        try {
+            const total = await kv.zcard(SNAPSHOT_LIST_KEY);
+            let latest = null;
+
+            if (total > 0) {
+                const latestDates = await kv.zrange(
+                    SNAPSHOT_LIST_KEY,
+                    0,
+                    0,
+                    { rev: true }
+                );
+                latest = Array.isArray(latestDates) && latestDates.length > 0 ? latestDates[0] : null;
+            }
+
+            snapshotInfo = {
+                count: total || 0,
+                latest
+            };
+        } catch (error) {
+            console.error('Health check snapshot error:', error);
+        }
+    } else if (STORAGE_MODE === 'redis') {
+        try {
+            if (redisClient.status === 'wait') {
+                await redisClient.connect();
+            }
+
+            const total = await redisClient.zcard(SNAPSHOT_LIST_KEY);
+            let latest = null;
+
+            if (total > 0) {
+                const latestDates = await redisClient.zrevrange(
+                    SNAPSHOT_LIST_KEY,
+                    0,
+                    0
+                );
+                latest = Array.isArray(latestDates) && latestDates.length > 0 ? latestDates[0] : null;
+            }
+
+            snapshotInfo = {
+                count: total || 0,
+                latest
+            };
+        } catch (error) {
+            console.error('Health check snapshot error (Redis):', error);
+        }
+    }
+
     res.json({ 
         status: 'ok',
         uptime: process.uptime(),
@@ -774,10 +1230,7 @@ app.get('/api/health', (req, res) => {
             hasData: !!priceCache.data,
             age: priceCache.timestamp ? Math.floor((Date.now() - priceCache.timestamp) / 1000) : null
         },
-        snapshots: {
-            count: snapshots.length,
-            latest: snapshots.length > 0 ? snapshots[snapshots.length - 1].date : null
-        }
+        snapshots: snapshotInfo
     });
 });
 
@@ -786,9 +1239,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`🏟️  Stadium Staking Terminal API running on port ${PORT}`);
-    console.log(`📊 API endpoint: http://localhost:${PORT}/api/stats`);
-    console.log(`🌐 Web interface: http://localhost:${PORT}`);
-});
+// Start server (local development)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`🏟️  Stadium Staking Terminal API running on port ${PORT}`);
+        console.log(`📊 API endpoint: http://localhost:${PORT}/api/stats`);
+        console.log(`🌐 Web interface: http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
