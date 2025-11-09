@@ -12,6 +12,8 @@ const EPOCH_INFO = {
     number: 1,
     durationDays: 30,
     totalEmissionPerEpoch: 1666667,
+    basePoolShare: 0.30,
+    performancePoolShare: 0.30,
     appchainPoolShare: 0.40
 };
 
@@ -115,9 +117,15 @@ function calculateStats(stakingData, appchainData) {
     const networkShare = totalStaked > 0 ? (totalStaked / totalNetworkStaked) * 100 : 0;
 
     const appchainPoolEmissionPerEpoch = EPOCH_INFO.totalEmissionPerEpoch * EPOCH_INFO.appchainPoolShare;
+    const performancePoolEmissionPerEpoch = EPOCH_INFO.totalEmissionPerEpoch * EPOCH_INFO.performancePoolShare;
+    const basePoolEmissionPerEpoch = EPOCH_INFO.totalEmissionPerEpoch * EPOCH_INFO.basePoolShare;
     const stadiumEmissionShare = networkShare / 100;
     const stadiumEmissionPerEpoch = appchainPoolEmissionPerEpoch * stadiumEmissionShare;
     const stadiumEmissionPerDay = stadiumEmissionPerEpoch / EPOCH_INFO.durationDays;
+    const stadiumPerformancePerEpoch = performancePoolEmissionPerEpoch * stadiumEmissionShare;
+    const stadiumPerformancePerDay = stadiumPerformancePerEpoch / EPOCH_INFO.durationDays;
+    const stadiumBasePerEpoch = basePoolEmissionPerEpoch * stadiumEmissionShare;
+    const stadiumBasePerDay = stadiumBasePerEpoch / EPOCH_INFO.durationDays;
 
     return {
         stadium: {
@@ -136,11 +144,20 @@ function calculateStats(stakingData, appchainData) {
             epochNumber: EPOCH_INFO.number,
             epochDurationDays: EPOCH_INFO.durationDays,
             totalEmissionPerEpoch: EPOCH_INFO.totalEmissionPerEpoch,
+            basePoolShare: EPOCH_INFO.basePoolShare,
+            performancePoolShare: EPOCH_INFO.performancePoolShare,
             appchainPoolShare: EPOCH_INFO.appchainPoolShare,
             appchainPoolEmissionPerEpoch,
+            performancePoolEmissionPerEpoch,
+            basePoolEmissionPerEpoch,
             stadiumShareOfPool: stadiumEmissionShare,
+            stadiumPerformanceShare: stadiumEmissionShare,
             stadiumEmissionPerEpoch,
-            stadiumEmissionPerDay
+            stadiumEmissionPerDay,
+            stadiumPerformancePerEpoch,
+            stadiumPerformancePerDay,
+            stadiumBasePerEpoch,
+            stadiumBasePerDay
         }
     };
 }

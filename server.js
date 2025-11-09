@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const path = require('path');
+const { runWalletAudit } = require('./monitoring/walletAudit');
 
 let kv;
 try {
@@ -57,10 +58,57 @@ const CONFIG = {
     GECKO_TERMINAL_API: 'https://api.geckoterminal.com/api/v2'
 };
 
+const DEFAULT_MONITORED_ADDRESSES = [
+    '0xe961c0a8a86e4cb3aa32380d67a45dce46bd573c',
+    '0x74b86da31f5df6bf974a3088297d95ff6b377f80',
+    '0x9db82c2c62a829d96a03275d379276945809df24',
+    '0xc1d9c61fb7b618ad40f082fad09c74d476d07a80',
+    '0x5b78ace197872a4c90bb137d0643aa3755dbc1a0',
+    '0x57387d1215c1e0d6b12d019265193653f812f2b7',
+    '0x2efba4ccd1aee02c9f37467ac281465d688e6469',
+    '0xb9c0aba138b98656ffea4309bfe2881b0b7c1d96',
+    '0x23cb5f48fa3f4502232f3442637f90e8e3355701',
+    '0x6834113a573db3a81696d08a64917ca0290bd3ef'
+];
+
+function parseAddressList(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    return value
+        .split(',')
+        .map(addr => addr.trim())
+        .filter(Boolean);
+}
+
+const AUDIT_CONFIG = {
+    enabled: process.env.AUDIT_ENABLED !== 'false',
+    intervalMs: Number(process.env.AUDIT_INTERVAL_MS) || (15 * 60 * 1000),
+    monitoredAddresses: parseAddressList(process.env.AUDIT_ADDRESSES),
+    maxAddresses: Number(process.env.AUDIT_MAX_ADDRESSES) || 60,
+    maxEventsPerAddress: Number(process.env.AUDIT_EVENTS_PER_ADDRESS) || 25
+};
+
+if (AUDIT_CONFIG.monitoredAddresses.length === 0) {
+    AUDIT_CONFIG.monitoredAddresses = DEFAULT_MONITORED_ADDRESSES;
+}
+
+let latestAudit = {
+    status: AUDIT_CONFIG.enabled ? 'idle' : 'disabled',
+    updatedAt: null,
+    trigger: null,
+    data: null,
+    error: null
+};
+
+let auditRunning = false;
+let auditIntervalHandle = null;
+
 const EPOCH_INFO = {
     number: 1,
     durationDays: 30,
     totalEmissionPerEpoch: 1666667,
+    basePoolShare: 0.30,
+    performancePoolShare: 0.30,
     appchainPoolShare: 0.40
 };
 
@@ -497,6 +545,77 @@ async function fetchLogsFromAPI() {
     }
 }
 
+async function performWalletAudit(trigger = 'manual') {
+    if (!AUDIT_CONFIG.enabled) {
+        latestAudit = {
+            status: 'disabled',
+            updatedAt: new Date().toISOString(),
+            trigger,
+            data: null,
+            error: 'Wallet audit disabled via configuration'
+        };
+        return;
+    }
+
+    if (auditRunning) {
+        console.log('🔁 Wallet audit already in progress, skipping trigger:', trigger);
+        return;
+    }
+
+    auditRunning = true;
+    const startedAt = Date.now();
+
+    try {
+        const data = await runWalletAudit({
+            fetchLogs: fetchLogsFromAPI,
+            config: CONFIG,
+            monitoredAddresses: AUDIT_CONFIG.monitoredAddresses,
+            maxAddresses: AUDIT_CONFIG.maxAddresses,
+            maxEventsPerAddress: AUDIT_CONFIG.maxEventsPerAddress
+        });
+
+        latestAudit = {
+            status: 'ok',
+            updatedAt: new Date().toISOString(),
+            trigger,
+            durationMs: Date.now() - startedAt,
+            data,
+            error: null
+        };
+
+        const missing = data.summary?.monitoredAddressesMissing || [];
+        const missingNote = missing.length ? ` | Missing monitored addresses: ${missing.join(', ')}` : '';
+        console.log(`🔍 Wallet audit (${trigger}) completed in ${latestAudit.durationMs}ms${missingNote}`);
+    } catch (error) {
+        latestAudit = {
+            status: 'error',
+            updatedAt: new Date().toISOString(),
+            trigger,
+            durationMs: Date.now() - startedAt,
+            data: null,
+            error: error.message
+        };
+        console.error('❌ Wallet audit failed:', error);
+    } finally {
+        auditRunning = false;
+    }
+}
+
+if (AUDIT_CONFIG.enabled) {
+    performWalletAudit('startup').catch(error => {
+        console.error('❌ Initial wallet audit failed:', error);
+    });
+    auditIntervalHandle = setInterval(() => {
+        performWalletAudit('interval').catch(err => {
+            console.error('❌ Wallet audit interval failure:', err);
+        });
+    }, AUDIT_CONFIG.intervalMs);
+
+    if (typeof auditIntervalHandle.unref === 'function') {
+        auditIntervalHandle.unref();
+    }
+}
+
 // Calculate epoch number (30-day periods)
 function getEpochNumber(timestamp) {
     // Assuming epoch 0 starts at a fixed date (e.g., Jan 1, 2024)
@@ -784,9 +903,15 @@ function calculateStats(stakingData, appchainData, stakingHistory = {}) {
     const networkShare = totalStaked > 0 ? (totalStaked / totalNetworkStaked) * 100 : 0;
 
     const appchainPoolEmissionPerEpoch = EPOCH_INFO.totalEmissionPerEpoch * EPOCH_INFO.appchainPoolShare;
+    const performancePoolEmissionPerEpoch = EPOCH_INFO.totalEmissionPerEpoch * EPOCH_INFO.performancePoolShare;
+    const basePoolEmissionPerEpoch = EPOCH_INFO.totalEmissionPerEpoch * EPOCH_INFO.basePoolShare;
     const stadiumEmissionShare = networkShare / 100;
     const stadiumEmissionPerEpoch = appchainPoolEmissionPerEpoch * stadiumEmissionShare;
     const stadiumEmissionPerDay = stadiumEmissionPerEpoch / EPOCH_INFO.durationDays;
+    const stadiumPerformancePerEpoch = performancePoolEmissionPerEpoch * stadiumEmissionShare;
+    const stadiumPerformancePerDay = stadiumPerformancePerEpoch / EPOCH_INFO.durationDays;
+    const stadiumBasePerEpoch = basePoolEmissionPerEpoch * stadiumEmissionShare;
+    const stadiumBasePerDay = stadiumBasePerEpoch / EPOCH_INFO.durationDays;
 
     // Define goals/milestones
     const goals = [
@@ -822,11 +947,20 @@ function calculateStats(stakingData, appchainData, stakingHistory = {}) {
             epochNumber: EPOCH_INFO.number,
             epochDurationDays: EPOCH_INFO.durationDays,
             totalEmissionPerEpoch: EPOCH_INFO.totalEmissionPerEpoch,
+            basePoolShare: EPOCH_INFO.basePoolShare,
+            performancePoolShare: EPOCH_INFO.performancePoolShare,
             appchainPoolShare: EPOCH_INFO.appchainPoolShare,
             appchainPoolEmissionPerEpoch,
+            performancePoolEmissionPerEpoch,
+            basePoolEmissionPerEpoch,
             stadiumShareOfPool: stadiumEmissionShare,
+            stadiumPerformanceShare: stadiumEmissionShare,
             stadiumEmissionPerEpoch,
-            stadiumEmissionPerDay
+            stadiumEmissionPerDay,
+            stadiumPerformancePerEpoch,
+            stadiumPerformancePerDay,
+            stadiumBasePerEpoch,
+            stadiumBasePerDay
         }
     };
 }
@@ -853,6 +987,10 @@ async function fetchStakingData() {
                 stats.emissions.stadiumEmissionPerEpochUSD = stats.emissions.stadiumEmissionPerEpoch * syndPrice;
                 stats.emissions.stadiumEmissionPerDayUSD = stats.emissions.stadiumEmissionPerDay * syndPrice;
                 stats.emissions.stadiumEmissionPerMonthUSD = stats.emissions.stadiumEmissionPerEpochUSD; // Per epoch = per month
+                stats.emissions.stadiumPerformancePerEpochUSD = (stats.emissions.stadiumPerformancePerEpoch || 0) * syndPrice;
+                stats.emissions.stadiumPerformancePerDayUSD = (stats.emissions.stadiumPerformancePerDay || 0) * syndPrice;
+                stats.emissions.stadiumBasePerEpochUSD = (stats.emissions.stadiumBasePerEpoch || 0) * syndPrice;
+                stats.emissions.stadiumBasePerDayUSD = (stats.emissions.stadiumBasePerDay || 0) * syndPrice;
             }
         } catch (priceError) {
             console.warn('Could not fetch SYND price:', priceError.message);
@@ -1054,6 +1192,40 @@ app.get('/api/price', async (req, res) => {
         res.status(500).json({ 
             error: 'Failed to fetch price data',
             message: error.message 
+        });
+    }
+});
+
+app.get('/api/audit', (req, res) => {
+    res.json({
+        config: {
+            enabled: AUDIT_CONFIG.enabled,
+            intervalMs: AUDIT_CONFIG.intervalMs,
+            monitoredAddresses: AUDIT_CONFIG.monitoredAddresses,
+            maxAddresses: AUDIT_CONFIG.maxAddresses,
+            maxEventsPerAddress: AUDIT_CONFIG.maxEventsPerAddress
+        },
+        audit: latestAudit
+    });
+});
+
+app.post('/api/audit/run', async (req, res) => {
+    if (!AUDIT_CONFIG.enabled) {
+        return res.status(503).json({
+            error: 'Wallet audit disabled via configuration'
+        });
+    }
+
+    try {
+        await performWalletAudit('manual');
+        res.json({
+            status: latestAudit.status,
+            audit: latestAudit
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: 'Failed to execute wallet audit',
+            message: error.message
         });
     }
 });

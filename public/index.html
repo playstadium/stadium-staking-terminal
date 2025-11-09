@@ -73,6 +73,10 @@
             height: 100vh;
         }
 
+        body.metric-bottom-sheet-open {
+            overflow: hidden;
+        }
+
         .container {
             display: grid;
             grid-template-columns: 1fr 420px;
@@ -102,8 +106,14 @@
             opacity: 0.2;
         }
 
-        #isoCanvas {
-            position: relative;
+        #stadiumSvg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 860px;
+            height: 680px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
             z-index: 1;
         }
 
@@ -187,7 +197,7 @@
         }
 
         .main-title {
-            font-size: 20px;
+            font-size: 40px;
             font-weight: 600;
             letter-spacing: -0.5px;
             margin-bottom: 8px;
@@ -211,6 +221,35 @@
             color: var(--text-secondary);
             letter-spacing: 0.5px;
             margin-top: 16px;
+        }        .external-action-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--accent-subtle);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .stat-action {
+            margin-top: 16px;
+        }
+
+        .external-action-button:hover,
+        .external-action-button:focus-visible {
+            border-color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .external-action-button:active {
+            transform: translateY(0);
         }
 
         .status-dot {
@@ -251,6 +290,9 @@
             letter-spacing: 1px;
             text-transform: uppercase;
             font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .stat-value {
@@ -419,6 +461,19 @@
             margin-bottom: 8px;
         }
 
+        .metric-label-with-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .metric-label-with-info span {
+            flex: 1;
+            letter-spacing: inherit;
+            text-transform: inherit;
+        }
+
         .metric-card-value {
             font-size: 20px;
             font-weight: 600;
@@ -443,6 +498,167 @@
             color: var(--trend-down);
         }
 
+        .metric-info-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-left: auto;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            border: none;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .metric-info-trigger:hover,
+        .metric-info-trigger:focus-visible {
+            background: rgba(127, 234, 195, 0.18);
+            color: #7feac3;
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .metric-info-trigger:active {
+            transform: translateY(0);
+        }
+
+        .metric-tooltip {
+            position: fixed;
+            z-index: 1200;
+            min-width: 220px;
+            max-width: 280px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: rgba(12, 17, 22, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+            color: var(--text-primary);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        .metric-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .metric-tooltip-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(127, 234, 195, 0.9);
+            margin-bottom: 8px;
+        }
+
+        .metric-tooltip-body {
+            font-size: 11px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        .metric-bottom-sheet-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(12, 17, 22, 0.6);
+            z-index: 1100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .metric-bottom-sheet-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .metric-bottom-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1200;
+            background: rgba(15, 20, 25, 0.98);
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            box-shadow: 0 -24px 48px rgba(0, 0, 0, 0.55);
+            transform: translateY(100%);
+            transition: transform 0.24s ease;
+            padding: 24px 20px 28px;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .metric-bottom-sheet.visible {
+            transform: translateY(0);
+        }
+
+        .metric-bottom-sheet-handle {
+            width: 42px;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            align-self: center;
+        }
+
+        .metric-bottom-sheet-title {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: rgba(127, 234, 195, 0.95);
+            text-align: center;
+        }
+
+        .metric-bottom-sheet-body {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            overflow-y: auto;
+        }
+
+        .metric-bottom-sheet-close {
+            margin-top: auto;
+            align-self: center;
+            padding: 10px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .metric-bottom-sheet-close:active {
+            transform: scale(0.98);
+        }
+
+        @media (hover: none) {
+            .metric-card.interactive:hover {
+                border-color: var(--border);
+                transform: none;
+            }
+
+            .metric-info-trigger:hover,
+            .metric-info-trigger:focus-visible {
+                background: rgba(255, 255, 255, 0.06);
+                color: var(--text-secondary);
+                transform: none;
+            }
+        }
+
         .metric-modal-section {
             margin-bottom: 28px;
         }
@@ -453,21 +669,34 @@
             gap: 16px;
         }
 
-        .modal-summary-grid .summary-label {
+        .summary-card {
+            background: rgba(12, 17, 22, 0.55);
+            border: 1px solid rgba(64, 197, 255, 0.15);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .summary-card.prominent {
+            background: rgba(64, 197, 255, 0.12);
+            border-color: rgba(64, 197, 255, 0.3);
+        }
+
+        .summary-card-title {
             font-size: 11px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 6px;
         }
 
-        .modal-summary-grid .summary-value {
+        .summary-card-value {
             font-size: 20px;
             font-weight: 600;
         }
 
-        .modal-summary-grid .summary-subtext {
-            margin-top: 4px;
+        .summary-card-sub {
             font-size: 11px;
             color: var(--text-muted);
         }
@@ -525,6 +754,135 @@
         .scenario-quick-buttons button:hover {
             border-color: var(--text-primary);
             color: var(--text-primary);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .scenario-field label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .scenario-field input {
+            width: 100%;
+            padding: 6px 8px;
+            background: var(--base-dark);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .scenario-helper {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .modal-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .modal-toggle-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 56px;
+            height: 26px;
+            border-radius: 999px;
+            background: rgba(64, 197, 255, 0.15);
+            border: 1px solid rgba(64, 197, 255, 0.35);
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #40C5FF;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .toggle-switch.active {
+            background: rgba(64, 197, 255, 0.35);
+            border-color: rgba(64, 197, 255, 0.6);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+            background: #7FEAC3;
+        }
+
+        .disclaimer-note {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .allocation-section {
+            margin-bottom: 18px;
+        }
+
+        .allocation-section-title {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .scenario-field label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .scenario-field input {
+            width: 100%;
+            padding: 6px 8px;
+            background: var(--base-dark);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .scenario-helper {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.4;
         }
 
         #rankTableContainer table {
@@ -890,6 +1248,162 @@
             margin: 12px 0;
         }
 
+        .stadium-stage-indicator .stage-helper-text {
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
+            margin-bottom: 12px;
+            text-transform: none;
+        }
+
+        .stadium-stage-indicator .stage-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stadium-stage-indicator .stage-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(72, 90, 105, 0.55);
+            background: rgba(17, 25, 32, 0.9);
+            color: var(--text-primary);
+            text-align: left;
+            cursor: pointer;
+            transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
+            font-family: 'Geist Mono', monospace;
+            text-transform: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .stadium-stage-indicator .stage-item:hover {
+            border-color: rgba(118, 246, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .stadium-stage-indicator .stage-item:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(118, 246, 255, 0.6);
+        }
+
+        .stadium-stage-indicator .stage-item-index {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid rgba(72, 90, 105, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            letter-spacing: 0.4px;
+            background: rgba(12, 18, 22, 0.9);
+        }
+
+        .stadium-stage-indicator .stage-item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stadium-stage-indicator .stage-item-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.45px;
+        }
+
+        .stadium-stage-indicator .stage-item-threshold {
+            font-size: 10px;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+        }
+
+        .stadium-stage-indicator .stage-item.completed {
+            border-color: rgba(127, 234, 195, 0.45);
+            background: rgba(20, 32, 28, 0.9);
+        }
+
+        .stadium-stage-indicator .stage-item.completed .stage-item-index {
+            border-color: rgba(127, 234, 195, 0.6);
+            color: #7feac3;
+            background: rgba(18, 28, 24, 0.9);
+        }
+
+        .stadium-stage-indicator .stage-item.active {
+            border-color: rgba(118, 246, 255, 0.65);
+            background: rgba(16, 25, 31, 0.94);
+            box-shadow: 0 0 0 1px rgba(118, 246, 255, 0.25);
+        }
+
+        .stadium-stage-indicator .stage-item.active .stage-item-index {
+            border-color: rgba(118, 246, 255, 0.75);
+            color: #76f6ff;
+            background: rgba(13, 20, 26, 0.95);
+        }
+
+        .stadium-stage-indicator .stage-item.upcoming {
+            border-style: dashed;
+            background: rgba(14, 19, 24, 0.75);
+            opacity: 0.85;
+        }
+
+        .stadium-stage-indicator .stage-item.is-preview {
+            box-shadow: 0 0 0 2px rgba(115, 255, 228, 0.35);
+            border-color: rgba(115, 255, 228, 0.6);
+        }
+
+        .stadium-stage-indicator .stage-preview-banner {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: rgba(16, 25, 32, 0.95);
+            border: 1px solid rgba(118, 246, 255, 0.45);
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        .stadium-stage-indicator .stage-preview-banner.active {
+            display: flex;
+        }
+
+        .stadium-stage-indicator .stage-preview-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: 0.45px;
+            text-transform: uppercase;
+        }
+
+        .stadium-stage-indicator .stage-preview-value {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
+        }
+
+        .stadium-stage-indicator .stage-preview-reset {
+            background: transparent;
+            border: 1px solid rgba(118, 246, 255, 0.6);
+            color: #76f6ff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 10px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .stadium-stage-indicator .stage-preview-reset:hover {
+            background: rgba(118, 246, 255, 0.12);
+        }
+
         @media (max-width: 1024px) {
             .stadium-stage-indicator {
                 top: 20px;
@@ -906,7 +1420,7 @@
                 right: 16px;
                 width: auto;
                 padding: 12px 14px;
-                font-size: 10px;
+            font-size: 10px;
                 display: none;
             }
 
@@ -1160,6 +1674,33 @@
                 display: none;
             }
 
+            body.visualizer-only {
+                overflow: hidden;
+            }
+
+            body.visualizer-only .container {
+                height: 100vh;
+            }
+
+            body.visualizer-only .data-panels {
+                display: none;
+            }
+
+            body.visualizer-only .iso-container {
+                transform: translateX(0);
+            }
+
+            body.visualizer-only .stadium-stage-indicator {
+                display: block;
+            }
+
+            body.visualizer-only .visualizer-toggle {
+                background: rgba(17, 25, 32, 0.95);
+                border-color: rgba(118, 246, 255, 0.45);
+                color: #76f6ff;
+                text-shadow: 0 0 6px rgba(118, 246, 255, 0.35);
+            }
+
             .charts-overlay {
                 position: fixed;
                 top: 0;
@@ -1247,6 +1788,15 @@
             <div class="iso-label label-bottom">APPCHAIN 574014</div>
             <div class="stadium-stage-indicator" id="stadiumStageIndicator">
                 <div class="stage-header">Stadium Build Campaign</div>
+                <div class="stage-helper-text">Preview each milestone and see the full build-out.</div>
+                <div class="stage-timeline" id="stageTimeline"></div>
+                <div class="stage-preview-banner" id="stagePreviewBanner" aria-hidden="true">
+                    <div>
+                        <div class="stage-preview-label">Visualizer Preview</div>
+                        <div class="stage-preview-value" id="stagePreviewLabel">Foundation · 250K SYND</div>
+                    </div>
+                    <button type="button" class="stage-preview-reset" id="stagePreviewReset">Return to Live</button>
+                </div>
                 <div class="stage-section">
                     <div class="stage-label">Current Stage</div>
                     <div class="stage-value" id="stageCurrentLabel">Foundation</div>
@@ -1264,8 +1814,7 @@
                     <div class="stage-goal" id="stageNextGoal">Unlock at 250K SYND</div>
                 </div>
             </div>
-            <canvas id="isoCanvas" width="900" height="900"></canvas>
-            <div class="visualizer-tooltip" id="visualizerTooltip"></div>
+            <svg id="stadiumSvg" viewBox="0 0 900 900" role="img" aria-label="Stadium construction visualizer"></svg>
             
             <!-- Charts Overlay -->
             <div class="charts-overlay" id="chartsOverlay">
@@ -1289,7 +1838,7 @@
 
         <!-- Mobile Visualizer Toggle -->
         <button class="visualizer-toggle" id="visualizerToggle" onclick="toggleVisualizer()">
-            SHOW VISUALIZER
+            VIEW VISUALIZER
         </button>
 
         <!-- Right: Data Panels -->
@@ -1321,14 +1870,22 @@
                 <div class="stats-section">
                     <!-- Total Staked -->
                     <div class="stat-group">
-                        <div class="stat-item">
-                            <div class="stat-label">Total Staked</div>
+                        <div class="stat-item" data-tooltip-key="totalStaked">
+                            <div class="stat-label metric-label-with-info">
+                                <span>Total Staked</span>
+                                <button type="button" class="metric-info-trigger" aria-label="Why we track Total Staked" aria-haspopup="true" data-tooltip-key="totalStaked">?</button>
+                            </div>
                             <div class="stat-value" id="totalStaked">0</div>
                             <div class="stat-secondary" id="totalStakedSubtitle">SYND locked in network</div>
                             <div class="progress-bar">
                                 <div class="progress-fill" id="goalProgress" style="width: 0%"></div>
                             </div>
                             <div class="goal-label" id="goalLabel">Goal: --</div>
+                            <div class="stat-action">
+                                <a class="external-action-button" href="https://commons.syndicate.io" target="_blank" rel="noopener noreferrer">
+                                    Stake on Syndicate Commons
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -1338,34 +1895,52 @@
                     <div>
                         <div class="section-title">Network Metrics</div>
                         <div class="metric-grid">
-                            <div class="metric-card interactive" data-metric="activeNodes">
-                                <div class="metric-card-label">Active Nodes</div>
+                            <div class="metric-card interactive" data-metric="activeNodes" data-tooltip-key="activeNodes">
+                                <div class="metric-card-label metric-label-with-info">
+                                    <span>Active Nodes</span>
+                                    <button type="button" class="metric-info-trigger" aria-label="Why we track Active Nodes" aria-haspopup="true" data-tooltip-key="activeNodes">?</button>
+                                </div>
                                 <div class="metric-card-value" id="stakerCount">0</div>
                                 <div class="metric-trend" id="stakerCountTrend">—</div>
                             </div>
-                            <div class="metric-card interactive" data-metric="avgPerNode">
-                                <div class="metric-card-label">Avg Per Node</div>
+                            <div class="metric-card interactive" data-metric="avgPerNode" data-tooltip-key="avgPerNode">
+                                <div class="metric-card-label metric-label-with-info">
+                                    <span>Avg Per Node</span>
+                                    <button type="button" class="metric-info-trigger" aria-label="Why we track Average Stake per Node" aria-haspopup="true" data-tooltip-key="avgPerNode">?</button>
+                                </div>
                                 <div class="metric-card-value" id="avgPerNode">0</div>
                                 <div class="metric-trend" id="avgPerNodeTrend">—</div>
                             </div>
-                            <div class="metric-card interactive" data-metric="networkShare">
-                                <div class="metric-card-label">Network Share</div>
+                            <div class="metric-card interactive" data-metric="networkShare" data-tooltip-key="networkShare">
+                                <div class="metric-card-label metric-label-with-info">
+                                    <span>Network Share</span>
+                                    <button type="button" class="metric-info-trigger" aria-label="Why we track Network Share" aria-haspopup="true" data-tooltip-key="networkShare">?</button>
+                                </div>
                                 <div class="metric-card-value" id="networkShare">0%</div>
                                 <div class="metric-trend" id="networkShareTrend">—</div>
                             </div>
-                            <div class="metric-card interactive" data-metric="rank">
-                                <div class="metric-card-label">Rank</div>
+                            <div class="metric-card interactive" data-metric="rank" data-tooltip-key="rank">
+                                <div class="metric-card-label metric-label-with-info">
+                                    <span>Rank</span>
+                                    <button type="button" class="metric-info-trigger" aria-label="Why we track Ecosystem Rank" aria-haspopup="true" data-tooltip-key="rank">?</button>
+                                </div>
                                 <div class="metric-card-value" id="rank">#-</div>
                                 <div class="metric-trend" id="rankTrend">—</div>
                             </div>
-                            <div class="metric-card interactive" data-metric="emissions">
-                                <div class="metric-card-label">Emission / Epoch</div>
+                            <div class="metric-card interactive" data-metric="emissions" data-tooltip-key="emissionEpoch">
+                                <div class="metric-card-label metric-label-with-info">
+                                    <span>Emission / Epoch</span>
+                                    <button type="button" class="metric-info-trigger" aria-label="Why we track Emission per Epoch" aria-haspopup="true" data-tooltip-key="emissionEpoch">?</button>
+                                </div>
                                 <div class="metric-card-value" id="emissionEpoch">0</div>
                                 <div class="stat-secondary" id="emissionEpochUSD" style="display: none;"></div>
                                 <div class="metric-card-subvalue" id="emissionEpochDetail">Epoch -- · Appchain pool</div>
                         </div>
-                            <div class="metric-card interactive" data-metric="emissions">
-                                <div class="metric-card-label">Emission / Day</div>
+                            <div class="metric-card interactive" data-metric="emissions" data-tooltip-key="emissionDay">
+                                <div class="metric-card-label metric-label-with-info">
+                                    <span>Emission / Day</span>
+                                    <button type="button" class="metric-info-trigger" aria-label="Why we track Emission per Day" aria-haspopup="true" data-tooltip-key="emissionDay">?</button>
+                                </div>
                                 <div class="metric-card-value" id="emissionDay">0</div>
                                 <div class="stat-secondary" id="emissionDayUSD" style="display: none;"></div>
                                 <div class="metric-card-subvalue" id="emissionDayDetail">Based on 30-day epoch</div>
@@ -1446,6 +2021,14 @@
         </div>
     </div>
 
+    <div class="metric-bottom-sheet-overlay" id="metricBottomSheetOverlay"></div>
+    <div class="metric-bottom-sheet" id="metricBottomSheet" aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1">
+        <div class="metric-bottom-sheet-handle"></div>
+        <div class="metric-bottom-sheet-title" id="metricBottomSheetTitle">Metric Title</div>
+        <div class="metric-bottom-sheet-body" id="metricBottomSheetBody"></div>
+        <button class="metric-bottom-sheet-close" type="button" id="metricBottomSheetClose">Close</button>
+    </div>
+
     <!-- Node Details Modal -->
     <div class="modal-overlay" id="nodeModal" onclick="closeNodeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
@@ -1487,6 +2070,37 @@
             tertiary: '#F9D66B',
             accent: '#FFFFFF',
             muted: 'rgba(255,255,255,0.08)'
+        };
+
+        const METRIC_DETAILS = {
+            totalStaked: {
+                title: 'Total Staked',
+                description: 'Sum of SYND currently bonded to Stadium validators. Shows network security and progress toward campaign unlock goals.'
+            },
+            activeNodes: {
+                title: 'Active Nodes',
+                description: 'Validators with active SYND stake backing Stadium right now. More nodes means higher resilience and decentralization.'
+            },
+            avgPerNode: {
+                title: 'Average Stake per Node',
+                description: 'Average SYND staked across the active validator set. Highlights how concentrated or evenly distributed stake is.'
+            },
+            networkShare: {
+                title: 'Network Share',
+                description: "Stadium's share of total SYND staked across all appchains in the ecosystem. Tracks competitive position and influence."
+            },
+            rank: {
+                title: 'Ecosystem Rank',
+                description: 'Leaderboard position among appchains by total bonded SYND. Helps plan how additional stake can move Stadium up the rankings.'
+            },
+            emissionEpoch: {
+                title: 'Emission per Epoch',
+                description: 'Projected SYND rewards earned by the Stadium validator set for each epoch (~30 days). Feeds treasury, tournaments, and validator payouts.'
+            },
+            emissionDay: {
+                title: 'Emission per Day',
+                description: 'Daily equivalent of the epoch emission. Useful for gauging ongoing incentive run-rate and budgeting in real time.'
+            }
         };
 
         if (window.Chart) {
@@ -1537,6 +2151,34 @@
             current: null,
             charts: {}
         };
+        let metricTooltipEl = null;
+        let metricTooltipTitleEl = null;
+        let metricTooltipBodyEl = null;
+        let metricBottomSheetEl = null;
+        let metricBottomSheetOverlayEl = null;
+        let metricBottomSheetTitleEl = null;
+        let metricBottomSheetBodyEl = null;
+        let metricBottomSheetCloseEl = null;
+        let activeTooltipKey = null;
+        let metricTooltipEventsBound = false;
+        let metricInfoLastTrigger = null;
+        const hoverMedia = window.matchMedia('(hover: hover)');
+        let supportsHover = hoverMedia.matches;
+
+        function updateHoverCapability(event) {
+            supportsHover = event.matches;
+            if (supportsHover) {
+                hideMetricBottomSheet(true);
+            } else {
+                hideMetricTooltip(true);
+            }
+        }
+
+        if (typeof hoverMedia.addEventListener === 'function') {
+            hoverMedia.addEventListener('change', updateHoverCapability);
+        } else if (typeof hoverMedia.addListener === 'function') {
+            hoverMedia.addListener(updateHoverCapability);
+        }
 
         const EMISSION_ALLOCATIONS = [
             { key: 'treasury', label: 'Stadium Treasury', percent: 0.25 },
@@ -1893,6 +2535,13 @@
                 case 'emissions':
                     return `
                         <div class="metric-modal-section">
+                            <div class="modal-toggle-row">
+                                <span class="modal-toggle-label">Performance Pool</span>
+                                <button type="button" class="toggle-switch" id="emissionPerformanceToggle" aria-pressed="false"></button>
+                            </div>
+                            <div class="disclaimer-note" id="emissionPerformanceDisclaimer" style="display: none;">
+                                Performance pool projections are speculative while the network matures and official metrics remain unavailable.
+                            </div>
                             <div class="modal-summary-grid" id="emissionSummaryGrid">
                                 <!-- Summary populated dynamically -->
                             </div>
@@ -1913,6 +2562,25 @@
                                         <button type="button" data-scenario="25000">+25K</button>
                                         <button type="button" data-scenario="50000">+50K</button>
                                         <button type="button" data-scenario="100000">+100K</button>
+                                    </div>
+                                </div>
+                                <div id="emissionPerformanceInputs" style="display: none;">
+                                    <div class="scenario-grid">
+                                        <div class="scenario-field">
+                                            <label for="emissionTransactionsInput">Estimated Actions per Day</label>
+                                            <input type="number" id="emissionTransactionsInput" min="0" step="10" value="220">
+                                        </div>
+                                        <div class="scenario-field">
+                                            <label for="emissionFeeInput">Fee per Action (USD)</label>
+                                            <input type="number" id="emissionFeeInput" min="0" step="0.01" value="0.5">
+                                        </div>
+                                        <div class="scenario-field">
+                                            <label for="emissionNetworkFeeInput">Network Fees per Day (USD)</label>
+                                            <input type="number" id="emissionNetworkFeeInput" min="0" step="100" value="10000">
+                                        </div>
+                                    </div>
+                                    <div class="scenario-helper">
+                                        Performance share approximation uses 40% fee share and 60% stake share. Casual/Amateur events run daily (1v1 Bo1-Bo3). Semi-Pro/Pro events run in 3-day blocks weekly/monthly with 1v1, 3v3, or 5v5 Bo1-Bo5 formats. Daily capacity assumes a soft cap of 5 paid matches per day.
                                     </div>
                                 </div>
                             </div>
@@ -1991,6 +2659,237 @@
                 borderDash: [4, 4],
                 borderColor: 'rgba(255, 255, 255, 0.08)'
             };
+        }
+
+        function ensureMetricTooltip() {
+            if (metricTooltipEl) return;
+
+            metricTooltipEl = document.createElement('div');
+            metricTooltipEl.className = 'metric-tooltip';
+            metricTooltipEl.innerHTML = `
+                <div class="metric-tooltip-title"></div>
+                <div class="metric-tooltip-body"></div>
+            `;
+
+            metricTooltipTitleEl = metricTooltipEl.querySelector('.metric-tooltip-title');
+            metricTooltipBodyEl = metricTooltipEl.querySelector('.metric-tooltip-body');
+
+            document.body.appendChild(metricTooltipEl);
+        }
+
+        function ensureMetricBottomSheet() {
+            if (metricBottomSheetEl) return;
+
+            metricBottomSheetEl = document.getElementById('metricBottomSheet');
+            metricBottomSheetOverlayEl = document.getElementById('metricBottomSheetOverlay');
+            metricBottomSheetTitleEl = document.getElementById('metricBottomSheetTitle');
+            metricBottomSheetBodyEl = document.getElementById('metricBottomSheetBody');
+            metricBottomSheetCloseEl = document.getElementById('metricBottomSheetClose');
+
+            if (metricBottomSheetOverlayEl) {
+                metricBottomSheetOverlayEl.addEventListener('click', () => hideMetricBottomSheet(true));
+            }
+
+            if (metricBottomSheetCloseEl) {
+                metricBottomSheetCloseEl.addEventListener('click', () => hideMetricBottomSheet(true));
+            }
+        }
+
+        function isMetricInfoVisible() {
+            const tooltipVisible = metricTooltipEl?.classList.contains('visible');
+            const sheetVisible = metricBottomSheetEl?.classList.contains('visible');
+            return Boolean(tooltipVisible || sheetVisible);
+        }
+
+        function positionMetricTooltip(rect, event) {
+            if (!metricTooltipEl || !metricTooltipEl.classList.contains('visible')) return;
+
+            const padding = 12;
+            let x = rect ? rect.left + rect.width / 2 : (event ? event.clientX : 0);
+            let y = rect ? rect.bottom + 12 : (event ? event.clientY : 0);
+
+            if (event && event.type.startsWith('mouse')) {
+                x = event.clientX + 16;
+                y = event.clientY + 16;
+            }
+
+            const tooltipRect = metricTooltipEl.getBoundingClientRect();
+            const maxX = window.innerWidth - tooltipRect.width - padding;
+            const maxY = window.innerHeight - tooltipRect.height - padding;
+
+            if (x > maxX) x = maxX;
+            if (y > maxY) {
+                y = rect ? rect.top - tooltipRect.height - 12 : maxY;
+            }
+
+            metricTooltipEl.style.left = `${Math.max(padding, x)}px`;
+            metricTooltipEl.style.top = `${Math.max(padding, y)}px`;
+        }
+
+        function showMetricTooltip(key, rect, event) {
+            const details = METRIC_DETAILS[key];
+            if (!details) return;
+
+            activeTooltipKey = key;
+            if (!supportsHover) {
+                showMetricBottomSheet(details);
+                return;
+            }
+
+            ensureMetricTooltip();
+
+            metricTooltipTitleEl.textContent = details.title;
+            metricTooltipBodyEl.textContent = details.description;
+
+            metricTooltipEl.classList.add('visible');
+            positionMetricTooltip(rect, event);
+        }
+
+        function hideMetricTooltip(force = false) {
+            if (!supportsHover) {
+                hideMetricBottomSheet(force);
+                return;
+            }
+
+            if (!metricTooltipEl) return;
+            if (!force && !metricTooltipEl.classList.contains('visible')) return;
+
+            metricTooltipEl.classList.remove('visible');
+            activeTooltipKey = null;
+            metricInfoLastTrigger = null;
+        }
+
+        function showMetricBottomSheet(details) {
+            ensureMetricBottomSheet();
+            if (!metricBottomSheetEl || !metricBottomSheetTitleEl || !metricBottomSheetBodyEl) return;
+
+            metricBottomSheetTitleEl.textContent = details.title;
+            metricBottomSheetBodyEl.textContent = details.description;
+            metricBottomSheetEl.classList.add('visible');
+            metricBottomSheetEl.setAttribute('aria-hidden', 'false');
+            metricBottomSheetEl.focus({ preventScroll: true });
+            if (metricBottomSheetOverlayEl) {
+                metricBottomSheetOverlayEl.classList.add('visible');
+            }
+            document.body.classList.add('metric-bottom-sheet-open');
+        }
+
+        function hideMetricBottomSheet(force = false) {
+            ensureMetricBottomSheet();
+            if (!metricBottomSheetEl) return;
+            if (!force && !metricBottomSheetEl.classList.contains('visible')) return;
+
+            metricBottomSheetEl.classList.remove('visible');
+            metricBottomSheetEl.setAttribute('aria-hidden', 'true');
+            if (metricBottomSheetOverlayEl) {
+                metricBottomSheetOverlayEl.classList.remove('visible');
+            }
+            document.body.classList.remove('metric-bottom-sheet-open');
+            if (metricInfoLastTrigger && typeof metricInfoLastTrigger.focus === 'function') {
+                setTimeout(() => {
+                    metricInfoLastTrigger?.focus({ preventScroll: true });
+                    metricInfoLastTrigger = null;
+                }, 0);
+            } else {
+                metricInfoLastTrigger = null;
+            }
+            activeTooltipKey = null;
+        }
+
+        function initMetricTooltips() {
+            const candidates = Array.from(document.querySelectorAll('[data-tooltip-key]'));
+            if (!candidates.length) return;
+
+            ensureMetricTooltip();
+            ensureMetricBottomSheet();
+
+            candidates.forEach(element => {
+                const key = element.dataset.tooltipKey;
+                if (!key || !METRIC_DETAILS[key] || element.dataset.tooltipInitialized === 'true') {
+                    return;
+                }
+
+                element.dataset.tooltipInitialized = 'true';
+
+                const label = element.querySelector('.metric-card-label, .stat-label');
+                if (label) {
+                    label.classList.add('metric-label-with-info');
+
+                    let infoButton = label.querySelector('.metric-info-trigger');
+                    if (!infoButton) {
+                        infoButton = document.createElement('button');
+                        infoButton.type = 'button';
+                        infoButton.className = 'metric-info-trigger';
+                        infoButton.textContent = '?';
+                        infoButton.setAttribute('aria-label', `Why we track ${METRIC_DETAILS[key].title}`);
+                        infoButton.setAttribute('aria-haspopup', 'true');
+                        infoButton.setAttribute('data-tooltip-key', key);
+                        label.appendChild(infoButton);
+                    }
+
+                    if (infoButton && infoButton.dataset.tooltipBound !== 'true') {
+                        const show = event => {
+                            if (event?.currentTarget) {
+                                metricInfoLastTrigger = event.currentTarget;
+                            }
+                            showMetricTooltip(key, element.getBoundingClientRect(), event);
+                        };
+                        const toggleButton = event => {
+                            event.stopPropagation();
+                            event.preventDefault();
+                            if (event?.currentTarget) {
+                                metricInfoLastTrigger = event.currentTarget;
+                            }
+                            if (activeTooltipKey === key && isMetricInfoVisible()) {
+                                hideMetricTooltip(true);
+                            } else {
+                                showMetricTooltip(key, element.getBoundingClientRect(), event);
+                            }
+                        };
+
+                        infoButton.addEventListener('click', toggleButton);
+                        infoButton.addEventListener('touchstart', event => {
+                            event.stopPropagation();
+                            event.preventDefault();
+                            toggleButton(event);
+                        }, { passive: false });
+
+                        if (supportsHover) {
+                            infoButton.addEventListener('mouseenter', show);
+                            infoButton.addEventListener('mousemove', event => {
+                                if (activeTooltipKey === key) {
+                                    positionMetricTooltip(element.getBoundingClientRect(), event);
+                                }
+                            });
+                        }
+
+                        infoButton.addEventListener('focus', show);
+                        infoButton.addEventListener('blur', () => {
+                            if (activeTooltipKey === key) hideMetricTooltip();
+                        });
+
+                        infoButton.dataset.tooltipBound = 'true';
+                    }
+                }
+
+            });
+
+            if (!metricTooltipEventsBound) {
+                window.addEventListener('resize', () => hideMetricTooltip(true));
+                window.addEventListener('scroll', () => hideMetricTooltip(true), true);
+                document.addEventListener('pointerdown', event => {
+                    if (!isMetricInfoVisible()) return;
+                    if (event.target.closest('[data-tooltip-key]')) return;
+                    if (event.target.closest('.metric-bottom-sheet')) return;
+                    hideMetricTooltip(true);
+                });
+                document.addEventListener('keydown', event => {
+                    if (event.key === 'Escape' && isMetricInfoVisible()) {
+                        hideMetricTooltip(true);
+                    }
+                });
+                metricTooltipEventsBound = true;
+            }
         }
 
         document.querySelectorAll('.metric-card.interactive').forEach(card => {
@@ -2405,17 +3304,32 @@
         }
 
         function renderEmissionsModal() {
-            setupEmissionScenarioControls();
-            updateEmissionScenario(0);
+            initializeEmissionModal();
         }
 
-        function computeEmissionScenario(additionalStake = 0) {
+        function computeEmissionScenario(additionalStake = 0, options = {}) {
             const simulation = simulateNetworkWithAdditionalStake(additionalStake);
             const share = simulation?.stadium?.share ?? (currentStats?.stadium?.networkShare || 0);
             const baselineShare = currentStats?.stadium?.networkShare || 0;
             const appchainPoolEmission = currentStats?.emissions?.appchainPoolEmissionPerEpoch || 0;
+            const performancePoolEmission = currentStats?.emissions?.performancePoolEmissionPerEpoch || 0;
             const epochDays = currentStats?.emissions?.epochDurationDays || 30;
             const price = currentStats?.price?.price || 0;
+            const baselinePerformanceShare = (currentStats?.emissions?.stadiumPerformanceShare ?? (baselineShare / 100)) || 0;
+
+            const transactionsPerDay = Number.isFinite(options.transactionsPerDay) ? options.transactionsPerDay : 0;
+            const feePerTransactionUSD = Number.isFinite(options.feePerTransactionUSD) ? options.feePerTransactionUSD : 0;
+            const networkFeesPerDayUSD = Number.isFinite(options.networkFeesPerDayUSD) ? options.networkFeesPerDayUSD : 0;
+
+            const stadiumFeesPerDayUSD = transactionsPerDay * feePerTransactionUSD;
+            const stadiumFeesPerEpochUSD = stadiumFeesPerDayUSD * epochDays;
+            const totalNetworkFeesPerDayUSD = Math.max(stadiumFeesPerDayUSD, networkFeesPerDayUSD);
+            const totalNetworkFeesPerEpochUSD = totalNetworkFeesPerDayUSD * epochDays;
+            const feeShare = totalNetworkFeesPerEpochUSD > 0 ? stadiumFeesPerEpochUSD / totalNetworkFeesPerEpochUSD : 0;
+
+            // Approximate performance share blending fee share (40%) with stake share (60%)
+            const stakeShareDecimal = share / 100;
+            const performanceShareDecimal = Math.max(0, Math.min(1, (feeShare * 0.4) + (stakeShareDecimal * 0.6)));
 
             const emissionPerEpochSYND = appchainPoolEmission * (share / 100);
             const emissionPerDaySYND = emissionPerEpochSYND / epochDays;
@@ -2423,6 +3337,13 @@
             const emissionPerDayUSD = emissionPerDaySYND * price;
 
             const baselineEmissionPerEpoch = currentStats?.emissions?.stadiumEmissionPerEpoch || (appchainPoolEmission * (baselineShare / 100));
+
+            const performancePerEpochSYND = performancePoolEmission * performanceShareDecimal;
+            const performancePerDaySYND = performancePerEpochSYND / epochDays;
+            const performancePerEpochUSD = performancePerEpochSYND * price;
+            const performancePerDayUSD = performancePerDaySYND * price;
+            const baselinePerformancePerEpochSYND = currentStats?.emissions?.stadiumPerformancePerEpoch || (performancePoolEmission * baselinePerformanceShare);
+            const baselinePerformancePerEpochUSD = baselinePerformancePerEpochSYND * price;
 
             return {
                 share,
@@ -2434,7 +3355,18 @@
                 baselineEmissionPerEpoch,
                 epochDays,
                 price,
-                simulation
+                simulation,
+                performancePerEpochSYND,
+                performancePerDaySYND,
+                performancePerEpochUSD,
+                performancePerDayUSD,
+                baselinePerformancePerEpochSYND,
+                baselinePerformancePerEpochUSD,
+                performanceShare: performanceShareDecimal * 100,
+                feeShare: feeShare * 100,
+                stadiumFeesPerEpochUSD,
+                stadiumFeesPerDayUSD,
+                totalNetworkFeesPerEpochUSD
             };
         }
 
@@ -2478,6 +3410,9 @@
             const slider = document.getElementById('emissionScenarioSlider');
             const input = document.getElementById('emissionScenarioInput');
             const buttons = document.querySelectorAll('#emissionScenarioButtons button');
+            const transactionsInput = document.getElementById('emissionTransactionsInput');
+            const feeInput = document.getElementById('emissionFeeInput');
+            const networkFeeInput = document.getElementById('emissionNetworkFeeInput');
 
             if (!slider || !input) return;
 
@@ -2498,42 +3433,92 @@
                     syncValue(current + increment);
                 });
             });
+
+            const emitChange = () => syncValue(parseInt(slider.value, 10) || 0);
+
+            if (transactionsInput) {
+                transactionsInput.addEventListener('input', emitChange);
+            }
+            if (feeInput) {
+                feeInput.addEventListener('input', emitChange);
+            }
+            if (networkFeeInput) {
+                networkFeeInput.addEventListener('input', emitChange);
+            }
+
+            return syncValue;
         }
 
         function updateEmissionScenario(additionalStake = 0) {
-            const scenario = computeEmissionScenario(additionalStake);
+            const transactionsInput = document.getElementById('emissionTransactionsInput');
+            const feeInput = document.getElementById('emissionFeeInput');
+            const networkFeeInput = document.getElementById('emissionNetworkFeeInput');
+
+            const transactionsPerDay = parseFloat(transactionsInput?.value || '0') || 0;
+            const feePerTransactionUSD = parseFloat(feeInput?.value || '0.5') || 0;
+            const networkFeesPerDayUSD = parseFloat(networkFeeInput?.value || '0') || 0;
+
+            const scenario = computeEmissionScenario(additionalStake, {
+                transactionsPerDay,
+                feePerTransactionUSD,
+                networkFeesPerDayUSD
+            });
             if (!scenario) return;
 
             const baselineEmissionPerEpochSYND = currentStats?.emissions?.stadiumEmissionPerEpoch || scenario.baselineEmissionPerEpoch;
             const baselineEmissionPerEpochUSD = baselineEmissionPerEpochSYND * (scenario.price || 0);
             const emissionDeltaSYND = scenario.emissionPerEpochSYND - baselineEmissionPerEpochSYND;
             const emissionDeltaUSD = scenario.emissionPerEpochUSD - baselineEmissionPerEpochUSD;
+            const performanceDeltaSYND = scenario.performancePerEpochSYND - scenario.baselinePerformancePerEpochSYND;
+            const performanceDeltaUSD = scenario.performancePerEpochUSD - scenario.baselinePerformancePerEpochUSD;
 
             const summaryGrid = document.getElementById('emissionSummaryGrid');
             if (summaryGrid) {
-                summaryGrid.innerHTML = `
-                    <div>
-                        <div class="summary-label">Emissions per Epoch</div>
-                        <div class="summary-value">${formatNumber(scenario.emissionPerEpochSYND)} SYND</div>
-                        <div class="summary-subtext">${formatUSD(scenario.emissionPerEpochUSD)} • Δ ${emissionDeltaSYND >= 0 ? '+' : ''}${formatNumber(emissionDeltaSYND)} SYND</div>
-                    </div>
-                    <div>
-                        <div class="summary-label">Emissions per Day</div>
-                        <div class="summary-value">${formatNumber(scenario.emissionPerDaySYND)} SYND</div>
-                        <div class="summary-subtext">${formatUSD(scenario.emissionPerDayUSD)} • ${scenario.epochDays}-day epoch</div>
-                    </div>
-                    <div>
-                        <div class="summary-label">Stadium Share</div>
-                        <div class="summary-value">${scenario.share.toFixed(2)}%</div>
-                        <div class="summary-subtext">${scenario.share - scenario.baselineShare >= 0 ? `<span class="summary-badge">▲ ${(scenario.share - scenario.baselineShare).toFixed(2)}%</span>` : `<span class="summary-badge" style="background: rgba(255, 122, 122, 0.12); color: var(--trend-down); border-color: rgba(255,122,122,0.45);">▼ ${Math.abs(scenario.share - scenario.baselineShare).toFixed(2)}%</span>`}</div>
-                    </div>
-                    <div>
-                        <div class="summary-label">Additional Stake</div>
-                        <div class="summary-value">${formatNumber(additionalStake)} SYND</div>
-                        <div class="summary-subtext">Δ ${emissionDeltaUSD >= 0 ? '+' : ''}${formatUSD(emissionDeltaUSD)}</div>
+                let summaryHtml = `
+                    <div class="summary-card prominent">
+                        <div class="summary-card-title">Appchain Pool / Epoch</div>
+                        <div class="summary-card-value">${formatNumber(scenario.emissionPerEpochSYND)} SYND</div>
+                        <div class="summary-card-sub">${formatUSD(scenario.emissionPerEpochUSD)} • Δ ${emissionDeltaSYND >= 0 ? '+' : ''}${formatNumber(emissionDeltaSYND)} SYND</div>
                     </div>
                 `;
+
+                if (metricModalState.showPerformancePool) {
+                    summaryHtml += `
+                        <div class="summary-card">
+                            <div class="summary-card-title">Performance Pool / Epoch</div>
+                            <div class="summary-card-value">${formatNumber(scenario.performancePerEpochSYND)} SYND</div>
+                            <div class="summary-card-sub">${formatUSD(scenario.performancePerEpochUSD)} • Δ ${performanceDeltaSYND >= 0 ? '+' : ''}${formatNumber(performanceDeltaSYND)} SYND</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-title">Sequencer Fees</div>
+                            <div class="summary-card-value">${formatUSD(scenario.stadiumFeesPerEpochUSD)}</div>
+                            <div class="summary-card-sub">≈ ${formatUSD(scenario.stadiumFeesPerDayUSD)} / day • Fee share ${scenario.feeShare.toFixed(2)}%</div>
+                        </div>
+                    `;
+                }
+
+                summaryHtml += `
+                    <div class="summary-card">
+                        <div class="summary-card-title">Stadium Share</div>
+                        <div class="summary-card-value">${scenario.share.toFixed(2)}%</div>
+                        <div class="summary-card-sub">
+                            ${scenario.share - scenario.baselineShare >= 0 ? `<span class="summary-badge">▲ ${(scenario.share - scenario.baselineShare).toFixed(2)}%</span>` : `<span class="summary-badge" style="background: rgba(255, 122, 122, 0.12); color: var(--trend-down); border-color: rgba(255,122,122,0.45);">▼ ${Math.abs(scenario.share - scenario.baselineShare).toFixed(2)}%</span>`}
+                            ${metricModalState.showPerformancePool ? ` • Perf share ${scenario.performanceShare.toFixed(2)}%` : ''}
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-title">Additional Stake</div>
+                        <div class="summary-card-value">${formatNumber(additionalStake)} SYND</div>
+                        <div class="summary-card-sub">Δ ${emissionDeltaUSD >= 0 ? '+' : ''}${formatUSD(emissionDeltaUSD)} per epoch</div>
+                    </div>
+                `;
+
+                summaryGrid.innerHTML = summaryHtml;
             }
+
+            // Combined monthly rake (appchain portion only) for display
+            const combinedPerEpochSYND = scenario.emissionPerEpochSYND + scenario.performancePerEpochSYND;
+            const combinedPerEpochUSD = scenario.emissionPerEpochUSD + scenario.performancePerEpochUSD;
 
             const allocationData = EMISSION_ALLOCATIONS.map(entry => ({
                 ...entry,
@@ -2543,12 +3528,31 @@
                 perDayUSD: scenario.emissionPerDayUSD * entry.percent
             }));
 
-            renderEmissionAllocationTable(allocationData);
+            const performanceAllocationData = metricModalState.showPerformancePool
+                ? EMISSION_ALLOCATIONS.map(entry => ({
+                    ...entry,
+                    perEpochSYND: scenario.performancePerEpochSYND * entry.percent,
+                    perEpochUSD: scenario.performancePerEpochUSD * entry.percent,
+                    perDaySYND: scenario.performancePerDaySYND * entry.percent,
+                    perDayUSD: scenario.performancePerDayUSD * entry.percent
+                }))
+                : null;
+
+            renderEmissionAllocationTable(allocationData, performanceAllocationData);
             const tournamentAllocation = allocationData.find(entry => entry.key === 'tournaments');
             renderTournamentProjectionTable(tournamentAllocation, scenario.epochDays);
+
+            metricModalState.emissionScenario = {
+                additionalStake,
+                transactionsPerDay,
+                feePerTransactionUSD,
+                networkFeesPerDayUSD,
+                combinedPerEpochSYND,
+                combinedPerEpochUSD
+            };
         }
 
-        function renderEmissionAllocationTable(allocationData) {
+        function renderEmissionAllocationTable(allocationData, performanceAllocation = null) {
             const container = document.getElementById('emissionAllocationTable');
             if (!container) return;
 
@@ -2557,7 +3561,8 @@
                 return;
             }
 
-            const rows = allocationData.map(entry => `
+            const buildTable = data => {
+                const rows = data.map(entry => `
                 <tr>
                     <td>
                         <div class="allocation-label">${entry.label}</div>
@@ -2572,7 +3577,7 @@
                 </tr>
             `).join('');
 
-            container.innerHTML = `
+                return `
                 <table>
                     <thead>
                         <tr>
@@ -2588,6 +3593,21 @@
                     </tbody>
                 </table>
             `;
+            };
+
+            let html = `<div class="allocation-section">
+                <div class="allocation-section-title">Appchain Pool Allocation</div>
+                ${buildTable(allocationData)}
+            </div>`;
+
+            if (performanceAllocation && metricModalState.showPerformancePool) {
+                html += `<div class="allocation-section">
+                    <div class="allocation-section-title">Performance Pool Allocation <span class="disclaimer-note">Speculative until official metrics are available.</span></div>
+                    ${buildTable(performanceAllocation)}
+                </div>`;
+            }
+
+            container.innerHTML = html;
         }
 
         function renderTournamentProjectionTable(allocation, epochDays) {
@@ -2633,6 +3653,45 @@
                     </tbody>
                 </table>
             `;
+        }
+
+        function initializeEmissionModal() {
+            if (typeof metricModalState.showPerformancePool !== 'boolean') {
+                metricModalState.showPerformancePool = false;
+            }
+
+            const toggleButton = document.getElementById('emissionPerformanceToggle');
+            const disclaimer = document.getElementById('emissionPerformanceDisclaimer');
+            const perfInputs = document.getElementById('emissionPerformanceInputs');
+
+            const updateToggleState = () => {
+                if (toggleButton) {
+                    toggleButton.classList.toggle('active', metricModalState.showPerformancePool);
+                    toggleButton.setAttribute('aria-pressed', metricModalState.showPerformancePool ? 'true' : 'false');
+                }
+                if (disclaimer) {
+                    disclaimer.style.display = metricModalState.showPerformancePool ? 'block' : 'none';
+                }
+                if (perfInputs) {
+                    perfInputs.style.display = metricModalState.showPerformancePool ? 'block' : 'none';
+                }
+            };
+
+            const syncValue = setupEmissionScenarioControls();
+
+            if (toggleButton) {
+                toggleButton.addEventListener('click', () => {
+                    metricModalState.showPerformancePool = !metricModalState.showPerformancePool;
+                    updateToggleState();
+                    const sliderValue = parseInt(document.getElementById('emissionScenarioSlider')?.value || '0', 10);
+                    updateEmissionScenario(sliderValue);
+                });
+            }
+
+            updateToggleState();
+
+            const sliderValue = parseInt(document.getElementById('emissionScenarioSlider')?.value || '0', 10);
+            updateEmissionScenario(Number.isFinite(sliderValue) ? sliderValue : 0);
         }
 
         function updateRankScenario(additionalStake = 0) {
@@ -2712,29 +3771,13 @@
             }
         }
 
-        // Isometric drawing
-        const canvas = document.getElementById('isoCanvas');
-        const ctx = canvas.getContext('2d');
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-
-        // Colors
-        const colors = {
-            primary: '#FFFFFF',
-            secondary: '#B0B8C0',
-            tertiary: '#6B7580',
-            bg: '#2A3843',
-            subtle: 'rgba(255, 255, 255, 0.1)'
-        };
-
-        const SHOW_NODE_MARKERS = false;
-
         const STADIUM_STAGES = [
             {
                 id: 'foundation',
                 label: 'Foundation',
                 min: 0,
                 max: 250000,
+                previewTotal: 250000,
                 description: 'Lay structural supports, utilities, and access tunnels.'
             },
             {
@@ -2742,6 +3785,7 @@
                 label: 'Lower Bowl',
                 min: 250000,
                 max: 500000,
+                previewTotal: 500000,
                 description: 'Raise lower seating bowl and concourse infrastructure.'
             },
             {
@@ -2749,6 +3793,7 @@
                 label: 'Upper Bowl',
                 min: 500000,
                 max: 1000000,
+                previewTotal: 1000000,
                 description: 'Complete upper seating tiers and broadcast decks.'
             },
             {
@@ -2756,115 +3801,286 @@
                 label: 'Illumination',
                 min: 1000000,
                 max: Infinity,
+                previewTotal: 1250000,
                 description: 'Light the crown, open the gates, and celebrate a live stadium.'
             }
         ];
 
-        // Isometric projection
-        function iso(x, y, z) {
+        // Stadium visualization (SVG linework)
+        const stadiumSvg = document.getElementById('stadiumSvg');
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const STADIUM_SVG_CONFIG = {
+            centerX: 450,
+            baselineY: 540,
+            verticalScale: 0.62,
+            frontGap: Math.PI * 0.32
+        };
+
+        const STADIUM_SECTION_PROFILES = {
+            foundation: { outerRadius: 360, innerRadius: 250, height: 60 },
+            lower: { outerRadius: 320, innerRadius: 190 },
+            upper: { outerRadius: 260, innerRadius: 130 },
+            crown: { outerRadius: 190, innerRadius: 70 }
+        };
+
+        const STADIUM_COLORS = {
+            foundationFill: '#17242F',
+            foundationStroke: 'rgba(96, 130, 150, 0.45)',
+            lowerFill: '#133240',
+            lowerStroke: '#76F6FF',
+            upperFill: '#163949',
+            upperStroke: '#7FEAC3',
+            crownFill: '#1A3E52',
+            crownStroke: '#76F6FF',
+            radialStroke: 'rgba(118, 246, 255, 0.22)'
+        };
+
+        function svgCreate(tag, attrs = {}) {
+            const el = document.createElementNS(svgNS, tag);
+            Object.entries(attrs).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    el.setAttribute(key, value);
+                }
+            });
+            return el;
+        }
+
+        function svgAppend(tag, attrs = {}) {
+            if (!stadiumSvg) return null;
+            const el = svgCreate(tag, attrs);
+            stadiumSvg.appendChild(el);
+            return el;
+        }
+
+        function clearStadiumSvg() {
+            if (!stadiumSvg) return;
+            while (stadiumSvg.firstChild) {
+                stadiumSvg.removeChild(stadiumSvg.firstChild);
+            }
+        }
+
+        function svgPolar(radius, angle) {
             return {
-                x: centerX + (x - z) * Math.cos(Math.PI / 6) * 0.8,
-                y: centerY + (x + z) * Math.sin(Math.PI / 6) * 0.8 - y * 0.9
+                x: STADIUM_SVG_CONFIG.centerX + radius * Math.cos(angle),
+                y: STADIUM_SVG_CONFIG.baselineY + STADIUM_SVG_CONFIG.verticalScale * radius * Math.sin(angle)
             };
         }
 
-        function drawLine(p1, p2, color = colors.primary, width = 1, opacity = 1) {
-            ctx.strokeStyle = color;
-            ctx.lineWidth = width;
-            ctx.globalAlpha = opacity;
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-            ctx.globalAlpha = 1;
-        }
+        function svgRingPath(outerRadius, innerRadius) {
+            const startAngle = Math.PI + STADIUM_SVG_CONFIG.frontGap;
+            const endAngle = -STADIUM_SVG_CONFIG.frontGap;
+            const outerStart = svgPolar(outerRadius, startAngle);
+            const outerEnd = svgPolar(outerRadius, endAngle);
+            const pathParts = [
+                `M ${outerStart.x.toFixed(1)} ${outerStart.y.toFixed(1)}`,
+                `A ${outerRadius.toFixed(1)} ${(outerRadius * STADIUM_SVG_CONFIG.verticalScale).toFixed(1)} 0 0 1 ${outerEnd.x.toFixed(1)} ${outerEnd.y.toFixed(1)}`
+            ];
 
-        function drawDot(p, radius = 3, color = colors.primary) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        function drawCube(x, y, z, w, h, d, opts = {}) {
-            let options = {};
-            if (typeof opts === 'boolean') {
-                options.filled = opts;
+            if (innerRadius > 0) {
+                const innerStart = svgPolar(innerRadius, endAngle);
+                const innerEnd = svgPolar(innerRadius, startAngle);
+                pathParts.push(
+                    `L ${innerStart.x.toFixed(1)} ${innerStart.y.toFixed(1)}`,
+                    `A ${innerRadius.toFixed(1)} ${(innerRadius * STADIUM_SVG_CONFIG.verticalScale).toFixed(1)} 0 0 0 ${innerEnd.x.toFixed(1)} ${innerEnd.y.toFixed(1)}`
+                );
             } else {
-                options = opts || {};
+                pathParts.push(`L ${STADIUM_SVG_CONFIG.centerX.toFixed(1)} ${STADIUM_SVG_CONFIG.baselineY.toFixed(1)}`);
             }
 
-            const filled = options.filled !== false;
-            const topColor = options.topColor || colors.bg;
-            const rightColor = options.rightColor || 'rgba(42, 56, 67, 0.6)';
-            const leftColor = options.leftColor || 'rgba(42, 56, 67, 0.8)';
+            pathParts.push('Z');
+            return pathParts.join(' ');
+        }
 
-            const points = [
-                iso(x, y, z),
-                iso(x + w, y, z),
-                iso(x + w, y, z + d),
-                iso(x, y, z + d),
-                iso(x, y + h, z),
-                iso(x + w, y + h, z),
-                iso(x + w, y + h, z + d),
-                iso(x, y + h, z + d)
-            ];
-
-            if (filled) {
-            // Top face
-                ctx.fillStyle = topColor;
-            ctx.beginPath();
-            ctx.moveTo(points[4].x, points[4].y);
-            ctx.lineTo(points[5].x, points[5].y);
-            ctx.lineTo(points[6].x, points[6].y);
-            ctx.lineTo(points[7].x, points[7].y);
-            ctx.closePath();
-            ctx.fill();
-
-            // Right face
-                ctx.fillStyle = rightColor;
-            ctx.beginPath();
-            ctx.moveTo(points[1].x, points[1].y);
-            ctx.lineTo(points[2].x, points[2].y);
-            ctx.lineTo(points[6].x, points[6].y);
-            ctx.lineTo(points[5].x, points[5].y);
-            ctx.closePath();
-            ctx.fill();
-
-            // Left face
-                ctx.fillStyle = leftColor;
-            ctx.beginPath();
-            ctx.moveTo(points[0].x, points[0].y);
-            ctx.lineTo(points[3].x, points[3].y);
-            ctx.lineTo(points[7].x, points[7].y);
-            ctx.lineTo(points[4].x, points[4].y);
-            ctx.closePath();
-            ctx.fill();
-            }
-
-            const edges = [
-                [0,1], [1,2], [2,3], [3,0],
-                [4,5], [5,6], [6,7], [7,4],
-                [0,4], [1,5], [2,6], [3,7]
-            ];
-
-            edges.forEach(([a, b]) => {
-                drawLine(points[a], points[b], colors.secondary, 1.3, 0.35);
+        function drawFoundationSvg(progress) {
+            if (!stadiumSvg) return;
+            const width = 720;
+            const height = STADIUM_SECTION_PROFILES.foundation.height;
+            const fillOpacity = Math.min(0.85, 0.35 + progress * 0.3);
+            svgAppend('rect', {
+                x: (STADIUM_SVG_CONFIG.centerX - width / 2).toFixed(1),
+                y: (STADIUM_SVG_CONFIG.baselineY + 36).toFixed(1),
+                width,
+                height,
+                rx: 18,
+                fill: STADIUM_COLORS.foundationFill,
+                'fill-opacity': fillOpacity,
+                stroke: STADIUM_COLORS.foundationStroke,
+                'stroke-width': 2,
+                'stroke-opacity': 0.4 + progress * 0.3
             });
+        }
+
+        function drawRingSvg(sectionKey, progress, options = {}) {
+            if (progress <= 0 || !stadiumSvg) return;
+            const section = STADIUM_SECTION_PROFILES[sectionKey];
+            if (!section) return;
+
+            const fill = options.fill || '#12303C';
+            const stroke = options.stroke || 'rgba(118,246,255,0.5)';
+            const baseFillOpacity = options.baseOpacity ?? 0.18;
+            const fillOpacity = Math.min(1, baseFillOpacity + (options.opacityScale ?? 0.5) * progress);
+            const strokeOpacity = Math.min(1, (options.strokeBaseOpacity ?? 0.45) + (options.strokeOpacityScale ?? 0.4) * progress);
+
+            svgAppend('path', {
+                d: svgRingPath(section.outerRadius, section.innerRadius),
+                fill,
+                'fill-opacity': fillOpacity,
+                stroke,
+                'stroke-opacity': strokeOpacity,
+                'stroke-width': options.strokeWidth || 2.4
+            });
+        }
+
+        function drawRadialsSvg(sectionKey, progress, options = {}) {
+            if (progress <= 0 || !stadiumSvg) return;
+            const section = STADIUM_SECTION_PROFILES[sectionKey];
+            if (!section) return;
+
+            const count = Math.max(3, Math.round((options.count || 24) * progress));
+            const group = svgCreate('g', {
+                stroke: options.stroke || STADIUM_COLORS.radialStroke,
+                'stroke-width': options.strokeWidth || 1,
+                'stroke-opacity': Math.min(0.7, (options.baseOpacity ?? 0.16) + (options.opacityScale ?? 0.25) * progress),
+                'stroke-dasharray': options.dash || '12 8',
+                'stroke-linecap': 'round'
+            });
+
+            const outerRadius = section.outerRadius;
+            const innerRadius = Math.max(section.innerRadius, outerRadius - 80);
+
+            for (let i = 1; i < count; i++) {
+                const fraction = i / count;
+                const angle = Math.PI + STADIUM_SVG_CONFIG.frontGap - ((Math.PI - STADIUM_SVG_CONFIG.frontGap * 2) * fraction);
+                if (Math.abs(angle - Math.PI / 2) < STADIUM_SVG_CONFIG.frontGap * 0.75) continue;
+                const outer = svgPolar(outerRadius, angle);
+                const inner = svgPolar(innerRadius, angle);
+                group.appendChild(svgCreate('line', {
+                    x1: outer.x.toFixed(1),
+                    y1: outer.y.toFixed(1),
+                    x2: inner.x.toFixed(1),
+                    y2: inner.y.toFixed(1)
+                }));
+            }
+
+            stadiumSvg.appendChild(group);
+        }
+
+        function drawFieldSvg(progress) {
+            if (!stadiumSvg) return;
+            const group = svgCreate('g', {
+                stroke: 'rgba(118,246,255,0.45)',
+                'stroke-linecap': 'round',
+                'stroke-width': 1.8,
+                'stroke-opacity': 0.35 + progress * 0.3,
+                fill: 'none'
+            });
+
+            const radius = 150;
+            const startAngle = Math.PI + STADIUM_SVG_CONFIG.frontGap * 1.15;
+            const endAngle = -STADIUM_SVG_CONFIG.frontGap * 1.15;
+            const start = svgPolar(radius, startAngle);
+            const end = svgPolar(radius, endAngle);
+            group.appendChild(svgCreate('path', {
+                d: `M ${start.x.toFixed(1)} ${start.y.toFixed(1)} A ${radius.toFixed(1)} ${(radius * STADIUM_SVG_CONFIG.verticalScale).toFixed(1)} 0 0 1 ${end.x.toFixed(1)} ${end.y.toFixed(1)}`
+            }));
+
+            group.appendChild(svgCreate('ellipse', {
+                cx: STADIUM_SVG_CONFIG.centerX,
+                cy: (STADIUM_SVG_CONFIG.baselineY + 12).toFixed(1),
+                rx: 60,
+                ry: (60 * STADIUM_SVG_CONFIG.verticalScale * 0.6).toFixed(1),
+                'stroke-dasharray': '10 8'
+            }));
+
+            group.appendChild(svgCreate('line', {
+                x1: (STADIUM_SVG_CONFIG.centerX - 120).toFixed(1),
+                y1: (STADIUM_SVG_CONFIG.baselineY + 12).toFixed(1),
+                x2: (STADIUM_SVG_CONFIG.centerX + 120).toFixed(1),
+                y2: (STADIUM_SVG_CONFIG.baselineY + 12).toFixed(1),
+                'stroke-dasharray': '14 12'
+            }));
+
+            stadiumSvg.appendChild(group);
+        }
+
+        function drawFacadeSvg(completion) {
+            if (!stadiumSvg || completion < 0.6) return;
+            const columns = Math.round(16 + (completion - 0.6) * 24);
+            const radius = STADIUM_SECTION_PROFILES.foundation.outerRadius + 28;
+            const height = 140 + (completion - 0.6) * 160;
+            const group = svgCreate('g', {
+                stroke: 'rgba(118,246,255,0.22)',
+                'stroke-width': 1.2,
+                'stroke-opacity': 0.28 + (completion - 0.6) * 0.5,
+                'stroke-linecap': 'round',
+                fill: 'none'
+            });
+
+            for (let i = 0; i <= columns; i++) {
+                const fraction = i / columns;
+                const angle = Math.PI + STADIUM_SVG_CONFIG.frontGap - ((Math.PI - STADIUM_SVG_CONFIG.frontGap * 2) * fraction);
+                const base = svgPolar(radius, angle);
+                const top = { x: base.x, y: base.y - height };
+                group.appendChild(svgCreate('line', {
+                    x1: base.x.toFixed(1),
+                    y1: (base.y + 24).toFixed(1),
+                    x2: top.x.toFixed(1),
+                    y2: top.y.toFixed(1)
+                }));
+            }
+
+            const rimStart = svgPolar(radius, Math.PI + STADIUM_SVG_CONFIG.frontGap);
+            const rimEnd = svgPolar(radius, -STADIUM_SVG_CONFIG.frontGap);
+            group.appendChild(svgCreate('path', {
+                d: `M ${rimStart.x.toFixed(1)} ${rimStart.y.toFixed(1)} A ${radius.toFixed(1)} ${(radius * STADIUM_SVG_CONFIG.verticalScale).toFixed(1)} 0 0 1 ${rimEnd.x.toFixed(1)} ${rimEnd.y.toFixed(1)}`,
+                'stroke-dasharray': '18 12',
+                'stroke-width': 2
+            }));
+
+            stadiumSvg.appendChild(group);
+        }
+
+        function renderStadiumSvg(progress) {
+            if (!stadiumSvg) return;
+            clearStadiumSvg();
+
+            drawFoundationSvg(progress.lower);
+            drawRingSvg('lower', progress.lower, {
+                fill: STADIUM_COLORS.lowerFill,
+                stroke: STADIUM_COLORS.lowerStroke,
+                baseOpacity: 0.2,
+                opacityScale: 0.55,
+                strokeWidth: 2.6
+            });
+            drawRadialsSvg('lower', progress.lower, { count: 26 });
+
+            drawRingSvg('upper', progress.upper, {
+                fill: STADIUM_COLORS.upperFill,
+                stroke: STADIUM_COLORS.upperStroke,
+                baseOpacity: 0.18,
+                opacityScale: 0.5,
+                strokeWidth: 2.2
+            });
+            drawRadialsSvg('upper', progress.upper, { count: 28, baseOpacity: 0.14, opacityScale: 0.24, strokeWidth: 0.9, dash: '10 8' });
+
+            drawRingSvg('crown', progress.crown, {
+                fill: STADIUM_COLORS.crownFill,
+                stroke: STADIUM_COLORS.crownStroke,
+                baseOpacity: 0.16,
+                opacityScale: 0.55,
+                strokeWidth: 1.8
+            });
+
+            drawFieldSvg(progress.lower);
+            drawFacadeSvg(computeOverallCompletion(progress));
         }
 
         const visualizerTooltip = document.getElementById('visualizerTooltip');
         const isoContainer = document.querySelector('.iso-container');
 
-        const FOUNDATION_SIZE = 340;
-        const FOUNDATION_HEIGHT = 18;
-        const LOWER_HEIGHT = 70;
-        const UPPER_HEIGHT = 60;
-        const CROWN_HEIGHT = 25;
-        const WALL_THICKNESS = 38;
-        const MAX_NODE_MARKERS = 16;
-
         let visualizerStakers = [];
+        let previewStageId = null;
+        let liveTotalStaked = 0;
 
         function clamp(value, min, max) {
             return Math.min(Math.max(value, min), max);
@@ -2891,244 +4107,167 @@
             };
         }
 
-        function drawFoundation() {
-            drawCube(
-                -FOUNDATION_SIZE / 2,
-                -FOUNDATION_HEIGHT,
-                -FOUNDATION_SIZE / 2,
-                FOUNDATION_SIZE,
-                FOUNDATION_HEIGHT,
-                FOUNDATION_SIZE,
-                {
-                    filled: true,
-                    topColor: '#1D2730',
-                    rightColor: 'rgba(36, 49, 60, 0.85)',
-                    leftColor: 'rgba(30, 40, 50, 0.9)'
-                }
-            );
-
-            // Inner platform
-            const innerSize = FOUNDATION_SIZE * 0.55;
-            drawCube(
-                -innerSize / 2,
-                -FOUNDATION_HEIGHT + 4,
-                -innerSize / 2,
-                innerSize,
-                8,
-                innerSize,
-                {
-                    filled: true,
-                    topColor: '#111920',
-                    rightColor: 'rgba(24, 33, 41, 0.8)',
-                    leftColor: 'rgba(24, 33, 41, 0.85)'
-                }
-            );
+        function computeOverallCompletion(progress) {
+            if (!progress) return 0;
+            const weights = { lower: 0.4, upper: 0.35, crown: 0.25 };
+            return (progress.lower * weights.lower) +
+                   (progress.upper * weights.upper) +
+                   (progress.crown * weights.crown);
         }
 
-        function drawRingLayer({ outerSize, height, wallThickness, progress, baseY, topColor }) {
-            if (progress <= 0) return;
-            const segmentsPerSide = 14;
-            const totalSegments = segmentsPerSide * 4;
-            const segmentsToDraw = Math.max(1, Math.round(totalSegments * clamp(progress, 0, 1)));
-            const segmentLength = outerSize / segmentsPerSide;
-            const half = outerSize / 2;
-            const wall = wallThickness;
+        function getStageById(stageId) {
+            return STADIUM_STAGES.find(stage => stage.id === stageId) || null;
+        }
 
-            let drawn = 0;
-
-            const sideColor = topColor.replace('1)', '0.85)');
-
-            const drawSegment = (x, z, width, depth) => {
-                drawCube(
-                    x,
-                    baseY - height,
-                    z,
-                    width,
-                    height,
-                    depth,
-                    {
-                        filled: true,
-                        topColor,
-                        rightColor: sideColor,
-                        leftColor: sideColor
-                    }
-                );
-            };
-
-            for (let side = 0; side < 4 && drawn < segmentsToDraw; side++) {
-                for (let i = 0; i < segmentsPerSide && drawn < segmentsToDraw; i++) {
-                    const offset = i * segmentLength;
-                    switch (side) {
-                        case 0: { // North
-                            const x = -half + offset;
-                            drawSegment(x, -half - wall, segmentLength, wall);
-                            break;
-                        }
-                        case 1: { // East
-                            const z = -half + offset;
-                            drawSegment(half, z, wall, segmentLength);
-                            break;
-                        }
-                        case 2: { // South
-                            const x = -half + offset;
-                            drawSegment(x, half, segmentLength, wall);
-                            break;
-                        }
-                        case 3: { // West
-                            const z = -half + offset;
-                            drawSegment(-half - wall, z, wall, segmentLength);
-                            break;
-                        }
-                    }
-                    drawn++;
-                }
+        function getStageTimelineLabel(stage) {
+            if (!stage) return '';
+            if (stage.max === Infinity) {
+                return `@ ${formatCompact(stage.min)}+ SYND`;
             }
+            return `@ ${formatCompact(stage.max)} SYND`;
         }
 
-        function drawCenterField() {
-            const fieldSize = FOUNDATION_SIZE * 0.32;
-            drawCube(
-                -fieldSize,
-                -FOUNDATION_HEIGHT + 6,
-                -fieldSize,
-                fieldSize * 2,
-                6,
-                fieldSize * 2,
-                {
-                    filled: true,
-                    topColor: '#101820',
-                    rightColor: 'rgba(16, 24, 32, 0.88)',
-                    leftColor: 'rgba(16, 24, 32, 0.92)'
-                }
-            );
-        }
-
-        function drawCrownDetails(progress) {
-            if (progress <= 0) return;
-            const bannerCount = 8;
-            const radius = FOUNDATION_SIZE / 2 + WALL_THICKNESS / 2;
-            const activeBanners = Math.max(1, Math.round(bannerCount * progress));
-
-            for (let i = 0; i < activeBanners; i++) {
-                const angle = (-Math.PI / 2) + (i * 2 * Math.PI) / bannerCount;
-                const x = Math.cos(angle) * radius;
-                const z = Math.sin(angle) * radius;
-                drawCube(
-                    x - 4,
-                    -FOUNDATION_HEIGHT - LOWER_HEIGHT - UPPER_HEIGHT - CROWN_HEIGHT,
-                    z - 4,
-                    8,
-                    CROWN_HEIGHT,
-                    8,
-                    {
-                        filled: true,
-                        topColor: '#6ee7ff',
-                        rightColor: 'rgba(110, 231, 255, 0.75)',
-                        leftColor: 'rgba(110, 231, 255, 0.65)'
-                    }
-                );
+        function formatStagePreviewAmount(stage) {
+            if (!stage) return '';
+            if (stage.max === Infinity) {
+                return `${formatCompact(stage.min)}+ SYND`;
             }
+            return `${formatCompact(stage.max)} SYND`;
         }
+
+        function getStagePreviewTotal(stage) {
+            if (!stage) return liveTotalStaked;
+            if (typeof stage.previewTotal === 'number') {
+                return stage.previewTotal;
+            }
+            if (stage.max === Infinity) {
+                return stage.min + 250000;
+            }
+            return stage.max;
+        }
+
+        function getVisualizerTotal() {
+            if (previewStageId) {
+                const stage = getStageById(previewStageId);
+                return getStagePreviewTotal(stage);
+            }
+            return liveTotalStaked;
+        }
+
+        function renderStageTimelineIfNeeded() {
+            const timeline = document.getElementById('stageTimeline');
+            if (!timeline || timeline.dataset.initialized === 'true') return;
+
+            timeline.innerHTML = STADIUM_STAGES.map((stage, index) => {
+                const unlockLabel = getStageTimelineLabel(stage);
+                return `
+                    <button type="button" class="stage-item" data-stage-id="${stage.id}">
+                        <span class="stage-item-index">${String(index + 1).padStart(2, '0')}</span>
+                        <div class="stage-item-content">
+                            <span class="stage-item-label">${stage.label}</span>
+                            <span class="stage-item-threshold">${unlockLabel}</span>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            timeline.dataset.initialized = 'true';
+
+            timeline.querySelectorAll('.stage-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const stageId = item.getAttribute('data-stage-id');
+                    if (!stageId) return;
+                    if (previewStageId === stageId) {
+                        setVisualizerPreview(null);
+                    } else {
+                        setVisualizerPreview(stageId);
+                    }
+                });
+            });
+        }
+
+        function updateStageTimeline(totalStaked, previewId = null) {
+            const timeline = document.getElementById('stageTimeline');
+            if (!timeline) return;
+
+            timeline.querySelectorAll('.stage-item').forEach(item => {
+                const stageId = item.getAttribute('data-stage-id');
+                const stage = getStageById(stageId);
+                if (!stage) return;
+
+                item.classList.remove('completed', 'active', 'upcoming', 'is-preview');
+
+                let status = 'upcoming';
+                if (stage.max === Infinity) {
+                    status = totalStaked >= stage.min ? 'active' : 'upcoming';
+                } else if (totalStaked >= stage.max) {
+                    status = 'completed';
+                } else if (totalStaked >= stage.min) {
+                    status = 'active';
+                }
+
+                item.classList.add(status);
+
+                if (previewId === stageId) {
+                    item.classList.add('is-preview');
+                }
+            });
+        }
+
+        function refreshStageIndicator() {
+            updateStageIndicator(liveTotalStaked, previewStageId);
+        }
+
+        function setVisualizerPreview(stageId) {
+            previewStageId = stageId;
+            refreshStageIndicator();
+            renderVisualizer();
+        }
+
+        renderStageTimelineIfNeeded();
+        updateStageTimeline(liveTotalStaked, previewStageId);
+
+        const stagePreviewResetButton = document.getElementById('stagePreviewReset');
+        if (stagePreviewResetButton) {
+            stagePreviewResetButton.addEventListener('click', () => setVisualizerPreview(null));
+        }
+
+
+        function drawRadialRibs() {}
+
+        function drawSeatingTerraces() {}
+
 
         function renderVisualizer() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (!currentStats) return;
+            if (!stadiumSvg) return;
             if (window.innerWidth <= 768 && !isoContainer.classList.contains('visible')) {
                 return;
             }
 
-            const totalStaked = currentStats.stadium?.totalStaked || 0;
-            const progress = computeStadiumProgress(totalStaked);
+            let progress;
 
-            drawFoundation();
-
-            drawRingLayer({
-                outerSize: FOUNDATION_SIZE * 0.85,
-                height: LOWER_HEIGHT,
-                wallThickness: WALL_THICKNESS,
-                progress: progress.lower,
-                baseY: -FOUNDATION_HEIGHT,
-                topColor: 'rgba(52, 66, 76, 1)'
-            });
-
-            drawRingLayer({
-                outerSize: FOUNDATION_SIZE * 0.65,
-                height: UPPER_HEIGHT,
-                wallThickness: WALL_THICKNESS * 0.85,
-                progress: progress.upper,
-                baseY: -FOUNDATION_HEIGHT - LOWER_HEIGHT,
-                topColor: 'rgba(66, 82, 94, 1)'
-            });
-
-            drawRingLayer({
-                outerSize: FOUNDATION_SIZE * 0.45,
-                height: CROWN_HEIGHT,
-                wallThickness: WALL_THICKNESS * 0.6,
-                progress: progress.crown,
-                baseY: -FOUNDATION_HEIGHT - LOWER_HEIGHT - UPPER_HEIGHT,
-                topColor: 'rgba(93, 148, 255, 0.9)'
-            });
-
-            drawCrownDetails(progress.crown);
-            drawCenterField();
-            if (SHOW_NODE_MARKERS) {
-                drawNodeMarkers();
+            if (previewStageId) {
+                const stage = getStageById(previewStageId);
+                const previewTotal = stage ? getStagePreviewTotal(stage) : 0;
+                progress = computeStadiumProgress(previewTotal);
+            } else if (currentStats) {
+                const totalStaked = getVisualizerTotal();
+                progress = computeStadiumProgress(totalStaked);
             } else {
-                nodeMarkers = [];
+                progress = { lower: 0, upper: 0, crown: 0 };
             }
+
+            renderStadiumSvg(progress);
         }
 
-        function drawNodeMarkers() {
-            nodeMarkers = [];
-            const stakers = visualizerStakers;
-            if (!stakers || stakers.length === 0) return;
+        function drawNodeMarkers() {}
 
-            const nodeCount = Math.min(stakers.length, MAX_NODE_MARKERS);
-            const radius = FOUNDATION_SIZE * 0.62;
-            const baseY = -FOUNDATION_HEIGHT - LOWER_HEIGHT - (UPPER_HEIGHT * 0.8);
-            const maxStake = Math.max(...stakers.slice(0, nodeCount).map(s => s.amount || 0), 1);
-
-            for (let i = 0; i < nodeCount; i++) {
-                const staker = stakers[i];
-                const normalized = clamp((staker.amount || 0) / maxStake, 0.2, 1);
-                const size = 14 + normalized * 10;
-                const angle = (-Math.PI / 2) + (i * 2 * Math.PI) / nodeCount;
-                const x = Math.cos(angle) * radius;
-                const z = Math.sin(angle) * radius;
-                const quality = staker.quality?.score || 0;
-
-                const topColor = quality >= 70 ? '#73FFE4' : quality >= 40 ? '#73C2FF' : '#A3B3C0';
-                const sideColor = quality >= 70 ? 'rgba(115, 255, 228, 0.7)' : quality >= 40 ? 'rgba(115, 194, 255, 0.7)' : 'rgba(163, 179, 192, 0.7)';
-
-                drawCube(
-                    x - size / 2,
-                    baseY - size,
-                    z - size / 2,
-                    size,
-                    size,
-                    size,
-                    {
-                        filled: true,
-                        topColor,
-                        rightColor: sideColor,
-                        leftColor: sideColor
-                    }
-                );
-
-                const screenPos = iso(x, baseY, z);
-                nodeMarkers.push({
-                    screenX: screenPos.x,
-                    screenY: screenPos.y,
-                    radius: size * 1.4,
-                    staker,
-                    rank: i + 1
-                });
-            }
-        }
-
-        function updateStageIndicator(totalStaked) {
+        function updateStageIndicator(totalStaked, previewStage = null) {
             const indicator = document.getElementById('stadiumStageIndicator');
             if (!indicator) return;
+
+            renderStageTimelineIfNeeded();
+            updateStageTimeline(totalStaked, previewStage);
 
             const stageCurrentLabel = document.getElementById('stageCurrentLabel');
             const stageCurrentDescription = document.getElementById('stageCurrentDescription');
@@ -3137,6 +4276,9 @@
             const stageNextLabel = document.getElementById('stageNextLabel');
             const stageNextDescription = document.getElementById('stageNextDescription');
             const stageNextGoal = document.getElementById('stageNextGoal');
+            const stagePreviewBanner = document.getElementById('stagePreviewBanner');
+            const stagePreviewLabel = document.getElementById('stagePreviewLabel');
+            const stagePreviewResetButton = document.getElementById('stagePreviewReset');
 
             const currentStage = STADIUM_STAGES.find(stage => totalStaked < stage.max) || STADIUM_STAGES[STADIUM_STAGES.length - 1];
             const currentIndex = STADIUM_STAGES.indexOf(currentStage);
@@ -3168,84 +4310,30 @@
                 if (stageNextDescription) stageNextDescription.textContent = 'All construction phases are complete.';
                 if (stageNextGoal) stageNextGoal.textContent = 'Thank you for helping complete Stadium Terminal.';
             }
-        }
 
-        function getMousePos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
-        }
-
-        function findMarkerAt(mouseX, mouseY) {
-            for (let i = 0; i < nodeMarkers.length; i++) {
-                const marker = nodeMarkers[i];
-                const dx = mouseX - marker.screenX;
-                const dy = mouseY - marker.screenY;
-                if (Math.sqrt(dx * dx + dy * dy) <= marker.radius) {
-                    return i;
+            if (stagePreviewBanner) {
+                if (previewStage) {
+                    const previewStageData = getStageById(previewStage);
+                    if (previewStageData) {
+                        stagePreviewBanner.classList.add('active');
+                        stagePreviewBanner.setAttribute('aria-hidden', 'false');
+                        if (stagePreviewLabel) {
+                            stagePreviewLabel.textContent = `${previewStageData.label} · ${formatStagePreviewAmount(previewStageData)}`;
+                        }
+                        if (stagePreviewResetButton) {
+                            stagePreviewResetButton.setAttribute('aria-hidden', 'false');
+                        }
+                    }
+                } else {
+                    stagePreviewBanner.classList.remove('active');
+                    stagePreviewBanner.setAttribute('aria-hidden', 'true');
+                    if (stagePreviewResetButton) {
+                        stagePreviewResetButton.setAttribute('aria-hidden', 'true');
+                    }
                 }
             }
-            return null;
         }
 
-        function showTooltip(marker, event) {
-            if (!marker) return;
-            const rect = isoContainer.getBoundingClientRect();
-            visualizerTooltip.style.left = `${event.clientX - rect.left}px`;
-            visualizerTooltip.style.top = `${event.clientY - rect.top}px`;
-            visualizerTooltip.innerHTML = `
-                <strong>#${marker.rank} · ${formatAddress(marker.staker.address)}</strong>
-                <span>${formatNumber(marker.staker.amount || 0)} SYND</span>
-                <span>Quality ${marker.staker.quality?.score ?? 0}/100</span>
-            `;
-            visualizerTooltip.style.display = 'block';
-        }
-
-        function hideTooltip() {
-            visualizerTooltip.style.display = 'none';
-        }
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (!SHOW_NODE_MARKERS) {
-                canvas.style.cursor = 'default';
-                hideTooltip();
-                return;
-            }
-            const mousePos = getMousePos(e);
-            const markerIndex = findMarkerAt(mousePos.x, mousePos.y);
-            
-            if (markerIndex !== null && markerIndex !== hoveredMarker) {
-                hoveredMarker = markerIndex;
-                canvas.style.cursor = 'pointer';
-                showTooltip(nodeMarkers[markerIndex], e);
-            } else if (markerIndex === null) {
-                hoveredMarker = null;
-                canvas.style.cursor = 'default';
-                hideTooltip();
-            }
-        });
-
-        canvas.addEventListener('click', (e) => {
-            if (!SHOW_NODE_MARKERS) return;
-            const mousePos = getMousePos(e);
-            const markerIndex = findMarkerAt(mousePos.x, mousePos.y);
-            if (markerIndex !== null) {
-                const marker = nodeMarkers[markerIndex];
-                if (marker?.staker?.address) {
-                    showNodeDetails(marker.staker.address);
-                }
-            }
-        });
-
-        canvas.addEventListener('mouseleave', () => {
-            hoveredMarker = null;
-            canvas.style.cursor = 'default';
-            hideTooltip();
-        });
 
         function updateUI(stats) {
             const previousStats = currentStats;
@@ -3260,6 +4348,7 @@
             // Update total staked
             const totalStaked = stats.stadium.totalStaked;
             document.getElementById('totalStaked').textContent = formatNumber(totalStaked);
+            liveTotalStaked = totalStaked;
             
             // Update subtitle with USD if available
             if (stats.price && stats.price.price > 0) {
@@ -3292,7 +4381,7 @@
             // Store all stakers for node details
             allStakersData = stats.allStakers || [];
 
-            updateStageIndicator(totalStaked);
+            refreshStageIndicator();
 
             // Update metrics
             const totalStakers = stats.stadium.totalStakers;
@@ -3624,6 +4713,7 @@
         // Initialize
         window.addEventListener('DOMContentLoaded', () => {
             console.log('Stadium Terminal initialized');
+            initMetricTooltips();
             fetchData();
         });
 
@@ -4377,22 +5467,35 @@
         // Mobile visualizer toggle
         function toggleVisualizer() {
             const toggle = document.getElementById('visualizerToggle');
-            
-            if (isoContainer.classList.contains('visible')) {
-                isoContainer.classList.remove('visible');
-                toggle.textContent = 'SHOW VISUALIZER';
-                hideTooltip();
-            } else {
+            const body = document.body;
+            const activating = !body.classList.contains('visualizer-only');
+
+            if (activating) {
+                body.classList.add('visualizer-only');
                 isoContainer.classList.add('visible');
-                toggle.textContent = 'HIDE VISUALIZER';
+                toggle.textContent = 'VIEW DASHBOARD';
                 renderVisualizer();
+            } else {
+                body.classList.remove('visualizer-only');
+                isoContainer.classList.remove('visible');
+                toggle.textContent = 'VIEW VISUALIZER';
+                if (previewStageId) {
+                    setVisualizerPreview(null);
+            } else {
+                    refreshStageIndicator();
+                }
             }
         }
 
         // Handle window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) {
+                document.body.classList.remove('visualizer-only');
                 isoContainer.classList.remove('visible');
+                const toggle = document.getElementById('visualizerToggle');
+                if (toggle) {
+                    toggle.textContent = 'VIEW VISUALIZER';
+            }
             }
             renderVisualizer();
         });
