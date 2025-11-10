@@ -125,6 +125,8 @@ The backend server:
 - `GET /` - Serves the frontend UI
 - `GET /api/stats` - Returns all staking statistics
 - `GET /api/health` - Health check endpoint
+- `GET /api/audit` - Returns the latest wallet audit snapshot and configuration
+- `POST /api/audit/run` - Forces an immediate wallet audit run (returns latest snapshot)
 
 ### Data Flow
 
@@ -237,6 +239,11 @@ For production deployments, you can set:
 
 ```bash
 PORT=3000                    # Server port (optional, defaults to 3000)
+AUDIT_ENABLED=true           # Enable/disable recurring wallet audit (default: true)
+AUDIT_INTERVAL_MS=900000     # Audit interval in milliseconds (default: 15 minutes)
+AUDIT_ADDRESSES=0xabc,...    # Comma-separated list of wallets to always include in audit output
+AUDIT_MAX_ADDRESSES=60       # Max addresses returned per audit snapshot (default: 60)
+AUDIT_EVENTS_PER_ADDRESS=25  # Max recent events per address in audit response (default: 25)
 ```
 
 No API keys or secrets required!

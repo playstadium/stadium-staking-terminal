@@ -221,7 +221,8 @@
             color: var(--text-secondary);
             letter-spacing: 0.5px;
             margin-top: 16px;
-        }        .external-action-button {
+        }
+        .external-action-button {
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -1420,7 +1421,7 @@
                 right: 16px;
                 width: auto;
                 padding: 12px 14px;
-            font-size: 10px;
+                font-size: 10px;
                 display: none;
             }
 
@@ -1563,6 +1564,141 @@
             font-size: 14px;
             color: var(--text-primary);
             font-weight: 600;
+        }
+
+        .node-history-trend {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: rgba(12, 17, 22, 0.65);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .node-history-summary {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .node-history-summary .net-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .node-history-summary > .context {
+            text-align: right;
+        }
+
+        .node-history-summary .value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .node-history-summary .value.gain {
+            color: var(--trend-up);
+        }
+
+        .node-history-summary .value.loss {
+            color: var(--trend-down);
+        }
+
+        .node-history-summary .context {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
+        }
+
+        .node-history-chart {
+            position: relative;
+            width: 100%;
+            height: 160px;
+        }
+
+        .node-history-timeline {
+            position: relative;
+            margin-top: 16px;
+            padding-left: 22px;
+        }
+
+        .node-history-timeline::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            bottom: 12px;
+            left: 10px;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .node-history-entry {
+            position: relative;
+            padding: 12px 16px 12px 18px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            background: rgba(12, 17, 22, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .node-history-entry::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: -15px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--base-dark);
+            border: 2px solid rgba(127, 234, 195, 0.8);
+        }
+
+        .node-history-entry.loss::before {
+            border-color: rgba(255, 122, 122, 0.8);
+        }
+
+        .node-history-entry .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+            gap: 12px;
+        }
+
+        .node-history-entry .event-type {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .node-history-entry.gain .event-type {
+            color: var(--trend-up);
+        }
+
+        .node-history-entry.loss .event-type {
+            color: var(--trend-down);
+        }
+
+        .node-history-entry .event-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+        }
+
+        .node-history-entry .event-amount {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .node-history-entry .event-note {
+            margin-top: 6px;
+            font-size: 10px;
+            color: var(--text-muted);
         }
 
         .quality-score {
@@ -2159,6 +2295,7 @@
         let metricBottomSheetTitleEl = null;
         let metricBottomSheetBodyEl = null;
         let metricBottomSheetCloseEl = null;
+        let nodeHistoryChart = null;
         let activeTooltipKey = null;
         let metricTooltipEventsBound = false;
         let metricInfoLastTrigger = null;
@@ -2901,6 +3038,163 @@
             });
         });
 
+        function destroyNodeHistoryChart() {
+            if (nodeHistoryChart && typeof nodeHistoryChart.destroy === 'function') {
+                nodeHistoryChart.destroy();
+            }
+            nodeHistoryChart = null;
+        }
+
+        function computeNodeHistorySeries(node) {
+            const history = Array.isArray(node?.history) ? node.history.slice(-20) : [];
+            if (!history.length) {
+                return { labels: [], values: [], baseline: 0, netChange: 0 };
+            }
+
+            const sorted = history.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const deltas = sorted.map(entry => {
+                const amount = Number(entry.amount) || 0;
+                if (entry.type && entry.type.toLowerCase() === 'unstake') {
+                    return -amount;
+                }
+                return amount;
+            });
+
+            const netChange = deltas.reduce((sum, value) => sum + value, 0);
+            let baseline = Number(node?.amount) - netChange;
+            if (!Number.isFinite(baseline) || baseline < 0) {
+                baseline = 0;
+            }
+
+            const labels = [];
+            const values = [];
+            let running = baseline;
+
+            labels.push('Baseline');
+            values.push(running);
+
+            sorted.forEach((entry, index) => {
+                running += deltas[index];
+                labels.push(new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                values.push(Math.max(running, 0));
+            });
+
+            return { labels, values, baseline, netChange, sorted };
+        }
+
+        function renderNodeHistoryTrend(node) {
+            destroyNodeHistoryChart();
+            const canvas = document.getElementById('nodeHistoryTrendChart');
+            if (!canvas) return;
+
+            const { labels, values, baseline, netChange } = computeNodeHistorySeries(node);
+            if (!labels.length) {
+                const netElement = document.getElementById('nodeHistoryNetChange');
+                const contextElement = document.getElementById('nodeHistoryContext');
+                if (netElement && contextElement) {
+                    netElement.classList.remove('gain', 'loss');
+                    netElement.textContent = '0 SYND';
+                    contextElement.textContent = 'No recent actions recorded';
+                }
+                canvas.parentElement.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 30px 0;">Not enough history to chart.</div>';
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(127, 234, 195, 0.25)');
+            gradient.addColorStop(1, 'rgba(127, 234, 195, 0.02)');
+
+            nodeHistoryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Total Staked',
+                        data: values,
+                        borderColor: '#7FEAC3',
+                        backgroundColor: gradient,
+                        fill: true,
+                        borderWidth: 2,
+                        tension: 0.35,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: context => `${formatNumber(context.parsed.y)} SYND`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            const netElement = document.getElementById('nodeHistoryNetChange');
+            const contextElement = document.getElementById('nodeHistoryContext');
+            if (netElement && contextElement) {
+                const finalValue = values[values.length - 1];
+                const changeClass = netChange >= 0 ? 'gain' : 'loss';
+                const percent = baseline > 0 ? ((finalValue - baseline) / baseline) * 100 : null;
+                netElement.classList.remove('gain', 'loss');
+                netElement.classList.add(changeClass);
+                netElement.textContent = `${netChange >= 0 ? '+' : '-'}${formatNumber(Math.abs(netChange))} SYND`;
+                contextElement.textContent = percent !== null
+                    ? `~${Math.abs(percent).toFixed(1)}% ${netChange >= 0 ? 'increase' : 'drawdown'} over last ${values.length - 1} actions`
+                    : `Change over last ${values.length - 1} actions`;
+            }
+        }
+
+        function renderNodeHistoryTimeline(node) {
+            const container = document.getElementById('nodeHistoryTimeline');
+            if (!container) return;
+
+            const history = Array.isArray(node?.history) ? node.history.slice(-20) : [];
+            if (!history.length) {
+                container.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 11px;">No history available for this node.</div>';
+                return;
+            }
+
+            const sorted = history.slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            container.innerHTML = sorted.map(entry => {
+                const date = new Date(entry.timestamp);
+                const type = (entry.type || '').toLowerCase();
+                const isLoss = type === 'unstake';
+                const amount = formatNumber(entry.amount || 0);
+                const noteParts = [];
+
+                if (entry.txHash) {
+                    noteParts.push(`<a href="https://commons.explorer.syndicate.io/tx/${entry.txHash}" target="_blank" style="color: var(--text-muted); text-decoration: none;">View tx →</a>`);
+                }
+
+                return `
+                    <div class="node-history-entry ${isLoss ? 'loss' : 'gain'}">
+                        <div class="event-header">
+                            <span class="event-type">${type === 'unstake' ? 'Unstake' : 'Stake'}</span>
+                            <span class="event-time">${date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                        </div>
+                        <div class="event-amount">${isLoss ? '-' : '+'}${amount} SYND</div>
+                        ${noteParts.length ? `<div class="event-note">${noteParts.join(' · ')}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
         function computeMedianTopStakers(count = 10) {
             if (!currentStats || !currentStats.top10) return 0;
             const values = currentStats.top10
@@ -3488,12 +3782,12 @@
                             <div class="summary-card-title">Performance Pool / Epoch</div>
                             <div class="summary-card-value">${formatNumber(scenario.performancePerEpochSYND)} SYND</div>
                             <div class="summary-card-sub">${formatUSD(scenario.performancePerEpochUSD)} • Δ ${performanceDeltaSYND >= 0 ? '+' : ''}${formatNumber(performanceDeltaSYND)} SYND</div>
-                        </div>
+                    </div>
                         <div class="summary-card">
                             <div class="summary-card-title">Sequencer Fees</div>
                             <div class="summary-card-value">${formatUSD(scenario.stadiumFeesPerEpochUSD)}</div>
                             <div class="summary-card-sub">≈ ${formatUSD(scenario.stadiumFeesPerDayUSD)} / day • Fee share ${scenario.feeShare.toFixed(2)}%</div>
-                        </div>
+                    </div>
                     `;
                 }
 
@@ -5385,6 +5679,7 @@
                 console.log('Node data received:', node);
                 
                 const quality = node.quality || { score: 0, activeEpochs: 0, totalEpochs: 0 };
+                destroyNodeHistoryChart();
                 
                 body.innerHTML = `
                     <div class="node-detail-item">
@@ -5415,21 +5710,28 @@
                         </div>
                     </div>
                     <div class="node-detail-item">
-                        <div class="node-detail-label">Staking History (Last 20)</div>
-                        <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px;">
-                            ${node.history && node.history.length > 0 ? 
-                                node.history.slice().reverse().map(h => `
-                                    <div class="history-item">
-                                        <span class="history-type ${h.type}">${h.type.toUpperCase()}</span>
-                                        <span>${formatNumber(h.amount || 0)} SYND</span>
-                                        <span style="color: var(--text-muted); font-size: 10px;">${new Date(h.timestamp).toLocaleDateString()}</span>
+                        <div class="node-detail-label">Stake Momentum</div>
+                        <div class="node-history-trend">
+                            <div class="node-history-summary">
+                                <div class="net-block">
+                                    <span class="context">Net flow (last 20 actions)</span>
+                                    <span class="value" id="nodeHistoryNetChange">--</span>
                                     </div>
-                                `).join('') :
-                                '<div style="padding: 20px; text-align: center; color: var(--text-muted);">No history available</div>'
-                            }
+                                <span class="context" id="nodeHistoryContext">Awaiting recent activity</span>
+                        </div>
+                            <div class="node-history-chart">
+                                <canvas id="nodeHistoryTrendChart"></canvas>
+                            </div>
                         </div>
                     </div>
+                    <div class="node-detail-item">
+                        <div class="node-detail-label">Staking Timeline (Last 20)</div>
+                        <div class="node-history-timeline" id="nodeHistoryTimeline"></div>
+                    </div>
                 `;
+
+                renderNodeHistoryTrend(node);
+                renderNodeHistoryTimeline(node);
             } catch (error) {
                 console.error('Error loading node details:', error);
                 const body = document.getElementById('nodeModalBody');
@@ -5446,6 +5748,7 @@
         function closeNodeModal(event) {
             if (!event || event.target.id === 'nodeModal' || event.target.classList.contains('modal-close')) {
                 document.getElementById('nodeModal').classList.remove('visible');
+                destroyNodeHistoryChart();
             }
         }
 

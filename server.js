@@ -442,6 +442,7 @@ async function takeSnapshot(stats, options = {}) {
     await persistSnapshotToStorage(snapshot);
     
     console.log(`📸 Snapshot taken: ${snapshot.date} - ${snapshot.totalStaked.toFixed(2)} SYND staked`);
+
     return snapshot;
 }
 
