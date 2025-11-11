@@ -71,10 +71,58 @@
             color: var(--text-primary);
             overflow: hidden;
             height: 100vh;
+            position: relative;
         }
 
         body.metric-bottom-sheet-open {
             overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: -10%;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-size: 160px 160px;
+            opacity: 0.14;
+            mix-blend-mode: hard-light;
+            animation: crt-noise 320ms steps(4, end) infinite;
+            z-index: 2147483000;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.08) 0px,
+                rgba(255, 255, 255, 0.08) 2px,
+                rgba(0, 0, 0, 0.32) 2px,
+                rgba(0, 0, 0, 0.32) 6px
+            );
+            mix-blend-mode: soft-light;
+            opacity: 0.5;
+            z-index: 2147483001;
+            animation: crt-flicker 9s steps(2, end) infinite;
+        }
+
+        @keyframes crt-noise {
+            0% { transform: translate3d(0, 0, 0); }
+            25% { transform: translate3d(-8px, 6px, 0); }
+            50% { transform: translate3d(6px, -10px, 0); }
+            75% { transform: translate3d(-4px, -3px, 0); }
+            100% { transform: translate3d(0, 0, 0); }
+        }
+
+        @keyframes crt-flicker {
+            0% { opacity: 0.30; }
+            35% { opacity: 0.36; }
+            50% { opacity: 0.32; }
+            65% { opacity: 0.38; }
+            100% { opacity: 0.30; }
         }
 
         .container {
@@ -82,6 +130,34 @@
             grid-template-columns: 1fr 420px;
             height: 100vh;
             gap: 0;
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+        }
+
+        .container::before,
+        .container::after {
+            content: "";
+            position: absolute;
+            inset: -6%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .container::before {
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 52%, rgba(0, 0, 0, 0.35) 100%);
+            mix-blend-mode: soft-light;
+            filter: blur(0.3px);
+        }
+
+        .container::after {
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 40%, rgba(0, 0, 0, 0.32) 100%);
+            mix-blend-mode: multiply;
+        }
+
+        .container > * {
+            position: relative;
+            z-index: 4;
         }
 
         /* Left side - Isometric view */
@@ -788,6 +864,25 @@
             line-height: 1.4;
         }
 
+        .scenario-reset-button {
+            align-self: flex-start;
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid rgba(64, 197, 255, 0.35);
+            border-radius: 20px;
+            color: #40C5FF;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .scenario-reset-button:hover {
+            background: rgba(64, 197, 255, 0.15);
+            border-color: rgba(64, 197, 255, 0.55);
+        }
+
         .modal-toggle-row {
             display: flex;
             align-items: center;
@@ -1421,7 +1516,7 @@
                 right: 16px;
                 width: auto;
                 padding: 12px 14px;
-                font-size: 10px;
+            font-size: 10px;
                 display: none;
             }
 
@@ -2331,6 +2426,13 @@
             { key: 'pro', label: 'Pro', min: 10000, max: 20000 }
         ];
 
+        const EMISSION_SCENARIO_DEFAULTS = {
+            additionalStake: 0,
+            transactionsPerDay: 220,
+            feePerTransactionUSD: 0.5,
+            networkFeesPerDayUSD: 10000
+        };
+
         // Chart.js theme customization for minimal sci-fi aesthetic
         let donutCenterPlugin = null;
 
@@ -2720,6 +2822,7 @@
                                         Performance share approximation uses 40% fee share and 60% stake share. Casual/Amateur events run daily (1v1 Bo1-Bo3). Semi-Pro/Pro events run in 3-day blocks weekly/monthly with 1v1, 3v3, or 5v5 Bo1-Bo5 formats. Daily capacity assumes a soft cap of 5 paid matches per day.
                                     </div>
                                 </div>
+                                <button type="button" class="scenario-reset-button" id="emissionScenarioReset">Reset Scenario</button>
                             </div>
                         </div>
                         <div class="metric-modal-section">
@@ -3957,6 +4060,12 @@
             const toggleButton = document.getElementById('emissionPerformanceToggle');
             const disclaimer = document.getElementById('emissionPerformanceDisclaimer');
             const perfInputs = document.getElementById('emissionPerformanceInputs');
+            const slider = document.getElementById('emissionScenarioSlider');
+            const sliderInput = document.getElementById('emissionScenarioInput');
+            const transactionsInput = document.getElementById('emissionTransactionsInput');
+            const feeInput = document.getElementById('emissionFeeInput');
+            const networkFeeInput = document.getElementById('emissionNetworkFeeInput');
+            const resetButton = document.getElementById('emissionScenarioReset');
 
             const updateToggleState = () => {
                 if (toggleButton) {
@@ -3973,6 +4082,21 @@
 
             const syncValue = setupEmissionScenarioControls();
 
+            const state = metricModalState.emissionScenario
+                ? {
+                    additionalStake: metricModalState.emissionScenario.additionalStake ?? EMISSION_SCENARIO_DEFAULTS.additionalStake,
+                    transactionsPerDay: metricModalState.emissionScenario.transactionsPerDay ?? EMISSION_SCENARIO_DEFAULTS.transactionsPerDay,
+                    feePerTransactionUSD: metricModalState.emissionScenario.feePerTransactionUSD ?? EMISSION_SCENARIO_DEFAULTS.feePerTransactionUSD,
+                    networkFeesPerDayUSD: metricModalState.emissionScenario.networkFeesPerDayUSD ?? EMISSION_SCENARIO_DEFAULTS.networkFeesPerDayUSD
+                }
+                : { ...EMISSION_SCENARIO_DEFAULTS };
+
+            if (slider) slider.value = state.additionalStake;
+            if (sliderInput) sliderInput.value = state.additionalStake;
+            if (transactionsInput) transactionsInput.value = state.transactionsPerDay;
+            if (feeInput) feeInput.value = state.feePerTransactionUSD;
+            if (networkFeeInput) networkFeeInput.value = state.networkFeesPerDayUSD;
+
             if (toggleButton) {
                 toggleButton.addEventListener('click', () => {
                     metricModalState.showPerformancePool = !metricModalState.showPerformancePool;
@@ -3984,8 +4108,20 @@
 
             updateToggleState();
 
-            const sliderValue = parseInt(document.getElementById('emissionScenarioSlider')?.value || '0', 10);
-            updateEmissionScenario(Number.isFinite(sliderValue) ? sliderValue : 0);
+            if (resetButton) {
+                resetButton.addEventListener('click', () => {
+                    metricModalState.emissionScenario = { ...EMISSION_SCENARIO_DEFAULTS };
+                    if (slider) slider.value = EMISSION_SCENARIO_DEFAULTS.additionalStake;
+                    if (sliderInput) sliderInput.value = EMISSION_SCENARIO_DEFAULTS.additionalStake;
+                    if (transactionsInput) transactionsInput.value = EMISSION_SCENARIO_DEFAULTS.transactionsPerDay;
+                    if (feeInput) feeInput.value = EMISSION_SCENARIO_DEFAULTS.feePerTransactionUSD;
+                    if (networkFeeInput) networkFeeInput.value = EMISSION_SCENARIO_DEFAULTS.networkFeesPerDayUSD;
+                    updateEmissionScenario(EMISSION_SCENARIO_DEFAULTS.additionalStake);
+                });
+            }
+
+            const sliderValue = Number.isFinite(state.additionalStake) ? state.additionalStake : EMISSION_SCENARIO_DEFAULTS.additionalStake;
+            updateEmissionScenario(sliderValue);
         }
 
         function updateRankScenario(additionalStake = 0) {
