@@ -1315,7 +1315,7 @@
         .synd-bottom-sheet-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(12, 17, 22, 0.6);
             z-index: 1100;
             opacity: 0;
             pointer-events: none;
@@ -1333,17 +1333,17 @@
             right: 0;
             bottom: 0;
             z-index: 1200;
-            background: #2A3843;
-            border-top: 1px solid #3A4854;
-            border-left: 1px solid #3A4854;
-            border-right: 1px solid #3A4854;
-            border-bottom: 4px solid #3A4854;
-            border-radius: 0;
-            padding: 30px;
+            background: rgba(15, 20, 25, 0.98);
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            box-shadow: 0 -24px 48px rgba(0, 0, 0, 0.55);
             transform: translateY(100%);
             transition: transform 0.24s ease;
+            padding: 24px 20px 28px;
+            max-height: 85vh;
             display: flex;
             flex-direction: column;
+            gap: 16px;
             box-sizing: border-box;
         }
 
@@ -1351,14 +1351,22 @@
             transform: translateY(0);
         }
 
+        .synd-bottom-sheet-handle {
+            width: 42px;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            align-self: center;
+            flex-shrink: 0;
+        }
+
         .synd-bottom-sheet-title {
-            font-family: 'Geist Mono', monospace;
-            font-weight: 500;
-            font-size: 14px;
-            letter-spacing: 0.28px;
-            color: #AFC1CF;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            margin-bottom: 16px;
+            color: rgba(127, 234, 195, 0.95);
+            text-align: center;
             flex-shrink: 0;
         }
 
@@ -1369,7 +1377,7 @@
             letter-spacing: -1.2px;
             color: #FFFFFF;
             line-height: 1;
-            margin-bottom: 8px;
+            text-align: center;
             flex-shrink: 0;
         }
 
@@ -1379,25 +1387,42 @@
             font-size: 14px;
             letter-spacing: 0.28px;
             color: #7FEAC3;
-            margin-bottom: 12px;
+            text-align: center;
             flex-shrink: 0;
         }
 
         .synd-bottom-sheet-chart {
-            height: 120px;
+            height: 180px;
             width: 100%;
-            margin-bottom: 12px;
             flex-shrink: 0;
         }
 
         .synd-bottom-sheet-description {
-            font-family: 'Geist Mono', monospace;
-            font-weight: 500;
-            font-size: 12px;
-            letter-spacing: 0.24px;
-            color: #6B7580;
-            line-height: 1.4;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            text-align: left;
             flex-shrink: 0;
+        }
+
+        .synd-bottom-sheet-close {
+            margin-top: auto;
+            align-self: center;
+            padding: 10px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .synd-bottom-sheet-close:active {
+            transform: scale(0.98);
         }
 
         .synd-link {
@@ -1408,8 +1433,10 @@
             transition: color 0.2s ease;
         }
 
-        .synd-link:hover {
-            color: #569ACF;
+        @media (min-width: 769px) {
+            .synd-link:hover {
+                color: #569ACF;
+            }
         }
 
         .staker-list {
@@ -1905,7 +1932,7 @@
                 right: 16px;
                 width: auto;
                 padding: 12px 14px;
-            font-size: 10px;
+                font-size: 10px;
                 display: none;
             }
 
@@ -2440,39 +2467,34 @@
             }
 
             .synd-bottom-sheet {
-                padding: 16px;
-                max-height: calc(100vh - 32px);
-                overflow: hidden;
+                padding: 24px 20px 28px;
+                max-height: 85vh;
+                gap: 16px;
             }
 
             .synd-bottom-sheet-title {
-                margin-bottom: 4px;
-                font-size: 11px;
+                font-size: 13px;
             }
 
             .synd-bottom-sheet-price {
-                font-size: 28px;
-                margin-bottom: 2px;
+                font-size: 36px;
                 line-height: 1;
             }
 
             .synd-bottom-sheet-change {
-                margin-bottom: 6px;
-                font-size: 11px;
+                font-size: 14px;
             }
 
             .synd-bottom-sheet-chart {
-                height: 30px !important;
-                min-height: 30px;
-                max-height: 30px;
-                margin-bottom: 6px;
+                height: 180px !important;
+                min-height: 180px;
+                max-height: 180px;
             }
 
             .synd-bottom-sheet-description {
-                font-size: 10px;
-                line-height: 1.2;
-                display: block;
-                margin-top: 0;
+                font-size: 12px;
+                line-height: 1.6;
+                text-align: left;
             }
         }
 
@@ -2769,11 +2791,13 @@
     <!-- SYND Bottom Sheet -->
     <div class="synd-bottom-sheet-overlay" id="syndBottomSheetOverlay"></div>
     <div class="synd-bottom-sheet" id="syndBottomSheet" aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1">
+        <div class="synd-bottom-sheet-handle"></div>
         <div class="synd-bottom-sheet-title">SYND Token</div>
         <div class="synd-bottom-sheet-price" id="syndBottomSheetPrice">$0.00</div>
         <div class="synd-bottom-sheet-change" id="syndBottomSheetChange">—</div>
         <canvas class="synd-bottom-sheet-chart" id="syndBottomSheetChart"></canvas>
         <div class="synd-bottom-sheet-description">Native token of the Syndicate Network, used for staking and governance. SYND powers the network's validator rewards and appchain emissions.</div>
+        <button class="synd-bottom-sheet-close" type="button" id="syndBottomSheetClose">Close</button>
     </div>
 
     <!-- Node Details Modal -->
@@ -3487,7 +3511,8 @@
             if (!details) return;
 
             activeTooltipKey = key;
-            if (!supportsHover) {
+            // Mobile: use bottom sheet (same approach as SYND token link)
+            if (window.innerWidth <= 768 || !supportsHover) {
                 showMetricBottomSheet(details);
                 return;
             }
@@ -3502,7 +3527,8 @@
         }
 
         function hideMetricTooltip(force = false) {
-            if (!supportsHover) {
+            // Mobile: hide bottom sheet (same approach as SYND token link)
+            if (window.innerWidth <= 768 || !supportsHover) {
                 hideMetricBottomSheet(force);
                 return;
             }
@@ -3528,6 +3554,7 @@
                 metricBottomSheetOverlayEl.classList.add('visible');
             }
             document.body.classList.add('metric-bottom-sheet-open');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling (same as SYND bottom sheet)
         }
 
         function hideMetricBottomSheet(force = false) {
@@ -3541,6 +3568,7 @@
                 metricBottomSheetOverlayEl.classList.remove('visible');
             }
             document.body.classList.remove('metric-bottom-sheet-open');
+            document.body.style.overflow = ''; // Restore background scrolling (same as SYND bottom sheet)
             if (metricInfoLastTrigger && typeof metricInfoLastTrigger.focus === 'function') {
                 setTimeout(() => {
                     metricInfoLastTrigger?.focus({ preventScroll: true });
@@ -3596,10 +3624,24 @@
                             if (event?.currentTarget) {
                                 metricInfoLastTrigger = event.currentTarget;
                             }
-                            if (activeTooltipKey === key && isMetricInfoVisible()) {
-                                hideMetricTooltip(true);
+                            // Mobile: always use bottom sheet (same approach as SYND token link)
+                            if (window.innerWidth <= 768) {
+                                const details = METRIC_DETAILS[key];
+                                if (details) {
+                                    if (activeTooltipKey === key && metricBottomSheetEl?.classList.contains('visible')) {
+                                        hideMetricBottomSheet(true);
+                                    } else {
+                                        activeTooltipKey = key; // Set before showing bottom sheet
+                                        showMetricBottomSheet(details);
+                                    }
+                                }
                             } else {
-                                showMetricTooltip(key, element.getBoundingClientRect(), event);
+                                // Desktop: toggle tooltip
+                                if (activeTooltipKey === key && isMetricInfoVisible()) {
+                                    hideMetricTooltip(true);
+                                } else {
+                                    showMetricTooltip(key, element.getBoundingClientRect(), event);
+                                }
                             }
                         };
 
@@ -5764,13 +5806,54 @@
                 priceEl.textContent = `$${priceData.price.toFixed(4)}`;
             }
             
-            if (changeEl && priceData.change24h !== null) {
-                const change = priceData.change24h;
-                const isPositive = change >= 0;
-                changeEl.textContent = `${isPositive ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%`;
-                changeEl.style.color = isPositive ? '#7FEAC3' : '#FF7A7A';
-            } else if (changeEl) {
-                changeEl.textContent = '—';
+            if (changeEl) {
+                let change = priceData.change24h;
+                let previousPrice = null;
+                
+                // If change24h is not available, calculate from price history
+                if (change === null || change === undefined) {
+                    if (priceData.priceHistory && priceData.priceHistory.length > 0) {
+                        // Sort by timestamp to ensure chronological order
+                        const sortedHistory = [...priceData.priceHistory].sort((a, b) => a.timestamp - b.timestamp);
+                        const currentPrice = priceData.price;
+                        const now = Date.now();
+                        const twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
+                        
+                        // Try to find price from 24 hours ago, or use first price as fallback
+                        let price24hAgo = null;
+                        for (let i = sortedHistory.length - 1; i >= 0; i--) {
+                            if (sortedHistory[i].timestamp <= twentyFourHoursAgo) {
+                                price24hAgo = parseFloat(sortedHistory[i].price);
+                                break;
+                            }
+                        }
+                        
+                        // If no 24h price found, use first price in history
+                        if (price24hAgo === null && sortedHistory.length > 0) {
+                            price24hAgo = parseFloat(sortedHistory[0].price) || currentPrice;
+                        }
+                        
+                        if (price24hAgo !== null && price24hAgo > 0) {
+                            const priceDelta = currentPrice - price24hAgo;
+                            change = (priceDelta / price24hAgo) * 100;
+                            previousPrice = price24hAgo;
+                        }
+                    }
+                }
+                
+                if (change !== null && change !== undefined) {
+                    const isPositive = change >= 0;
+                    const absChange = Math.abs(change);
+                    const delta = previousPrice !== null 
+                        ? (priceData.price - previousPrice).toFixed(4)
+                        : (priceData.price * (change / 100)).toFixed(4);
+                    
+                    changeEl.textContent = `${isPositive ? '▲' : '▼'} $${Math.abs(parseFloat(delta)).toFixed(4)} (${absChange.toFixed(2)}%)`;
+                    changeEl.style.color = isPositive ? '#7FEAC3' : '#FF7A7A';
+                } else {
+                    changeEl.textContent = '—';
+                    changeEl.style.color = 'var(--text-muted)';
+                }
             }
 
             // Chart will be created when tooltip is shown
@@ -5786,11 +5869,54 @@
                 priceEl.textContent = `$${priceData.price.toFixed(4)}`;
             }
             
-            if (changeEl && priceData.change24h !== null) {
-                const change = priceData.change24h;
-                const isPositive = change >= 0;
-                changeEl.textContent = `${isPositive ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%`;
-                changeEl.style.color = isPositive ? '#7FEAC3' : '#FF7A7A';
+            if (changeEl) {
+                let change = priceData.change24h;
+                let previousPrice = null;
+                
+                // If change24h is not available, calculate from price history
+                if (change === null || change === undefined) {
+                    if (priceData.priceHistory && priceData.priceHistory.length > 0) {
+                        // Sort by timestamp to ensure chronological order
+                        const sortedHistory = [...priceData.priceHistory].sort((a, b) => a.timestamp - b.timestamp);
+                        const currentPrice = priceData.price;
+                        const now = Date.now();
+                        const twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
+                        
+                        // Try to find price from 24 hours ago, or use first price as fallback
+                        let price24hAgo = null;
+                        for (let i = sortedHistory.length - 1; i >= 0; i--) {
+                            if (sortedHistory[i].timestamp <= twentyFourHoursAgo) {
+                                price24hAgo = parseFloat(sortedHistory[i].price);
+                                break;
+                            }
+                        }
+                        
+                        // If no 24h price found, use first price in history
+                        if (price24hAgo === null && sortedHistory.length > 0) {
+                            price24hAgo = parseFloat(sortedHistory[0].price) || currentPrice;
+                        }
+                        
+                        if (price24hAgo !== null && price24hAgo > 0) {
+                            const priceDelta = currentPrice - price24hAgo;
+                            change = (priceDelta / price24hAgo) * 100;
+                            previousPrice = price24hAgo;
+                        }
+                    }
+                }
+                
+                if (change !== null && change !== undefined) {
+                    const isPositive = change >= 0;
+                    const absChange = Math.abs(change);
+                    const delta = previousPrice !== null 
+                        ? (priceData.price - previousPrice).toFixed(4)
+                        : (priceData.price * (change / 100)).toFixed(4);
+                    
+                    changeEl.textContent = `${isPositive ? '▲' : '▼'} $${Math.abs(parseFloat(delta)).toFixed(4)} (${absChange.toFixed(2)}%)`;
+                    changeEl.style.color = isPositive ? '#7FEAC3' : '#FF7A7A';
+                } else {
+                    changeEl.textContent = '—';
+                    changeEl.style.color = 'var(--text-muted)';
+                }
             }
 
             createSyndPriceChart('syndBottomSheetChart', null);
@@ -5909,6 +6035,15 @@
                     hideSyndBottomSheet();
                 });
                 overlay.dataset.listenerAdded = 'true';
+            }
+
+            // Close bottom sheet on close button click (only add once)
+            const closeButton = document.getElementById('syndBottomSheetClose');
+            if (closeButton && !closeButton.dataset.listenerAdded) {
+                closeButton.addEventListener('click', () => {
+                    hideSyndBottomSheet();
+                });
+                closeButton.dataset.listenerAdded = 'true';
             }
         }
 
