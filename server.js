@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const fetch = require('node-fetch');
 const path = require('path');
 const { runWalletAudit } = require('./monitoring/walletAudit');
@@ -115,6 +116,7 @@ const EPOCH_INFO = {
 };
 
 // Middleware
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
