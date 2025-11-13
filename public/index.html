@@ -88,7 +88,7 @@
             opacity: 0.14;
             mix-blend-mode: hard-light;
             animation: crt-noise 320ms steps(4, end) infinite;
-            z-index: 2147483000;
+            z-index: 2147483647;
         }
 
         body::after {
@@ -104,8 +104,8 @@
                 rgba(0, 0, 0, 0.32) 6px
             );
             mix-blend-mode: soft-light;
-            opacity: 0.5;
-            z-index: 2147483001;
+            opacity: 0.2;
+            z-index: 2147483647;
             animation: crt-flicker 9s steps(2, end) infinite;
         }
 
@@ -182,15 +182,46 @@
             opacity: 0.2;
         }
 
-        #stadiumSvg {
+        .stadium-image-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 860px;
-            height: 680px;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 1;
+        }
+
+        .stadium-image-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                transparent 25%,
+                rgba(0, 0, 0, 0.15) 45%,
+                rgba(0, 0, 0, 0.35) 65%,
+                rgba(0, 0, 0, 0.6) 85%,
+                rgba(0, 0, 0, 0.85) 100%
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        #stadiumImage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: contrast(1.5) brightness(1.3);
+            opacity: 0.6;
+            mix-blend-mode: multiply;
         }
 
         .corner-indicators {
@@ -250,6 +281,12 @@
             top: 40px;
             left: 50%;
             transform: translateX(-50%);
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 18px;
+            letter-spacing: -0.54px;
+            color: #FFFFFF;
+            text-transform: lowercase;
         }
 
         .label-bottom {
@@ -268,21 +305,89 @@
         }
 
         .header-section {
+            padding: 0;
+        }
+
+        .section-border-bottom {
             padding: 30px;
             border-bottom: 1px solid var(--border);
         }
 
+        .header-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-logo {
+            width: auto;
+            height: 24px;
+            display: block;
+        }
+
         .main-title {
-            font-size: 40px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 400;
+            font-size: 31px;
+            letter-spacing: -0.93px;
+            color: #ffffff;
             margin-bottom: 8px;
+            text-transform: lowercase;
         }
 
         .subtitle {
-            font-size: 13px;
-            color: var(--text-secondary);
-            letter-spacing: 0.5px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 18px;
+            letter-spacing: -0.54px;
+            color: #6e95b1;
+        }
+
+        .sys-status-section {
+            margin-top: 0;
+        }
+
+        .sys-status-header {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 18px;
+            letter-spacing: 0.18px;
+            color: #6B7580;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .sys-status-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .status-indicator-square {
+            width: 12px;
+            height: 12px;
+            background: #569ACF;
+            display: block;
+        }
+
+        .status-text {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 18px;
+            letter-spacing: -0.54px;
+            color: #ffffff;
+            text-transform: lowercase;
+        }
+
+        .epoch-info {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 18px;
+            letter-spacing: -0.54px;
+            color: #ffffff;
+            margin-left: 20px;
         }
 
         .status-badge {
@@ -301,16 +406,20 @@
         .external-action-button {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            padding: 10px 18px;
-            background: var(--accent-subtle);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 999px;
-            font-size: 12px;
-            letter-spacing: 0.4px;
+            width: 168px;
+            height: 44px;
+            background: #AFC1CF;
+            border: 1px solid #3A4854;
+            border-radius: 0;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: -0.48px;
             text-transform: uppercase;
             text-decoration: none;
-            color: var(--text-primary);
+            color: #212629;
             transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
         }
 
@@ -320,13 +429,15 @@
 
         .external-action-button:hover,
         .external-action-button:focus-visible {
-            border-color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.18);
-            transform: translateY(-1px);
+            background: #569ACF;
+            border-color: #3A4854;
+            color: #212629;
         }
 
         .external-action-button:active {
-            transform: translateY(0);
+            background: #2A3843;
+            border-color: #0E1316;
+            color: #ffffff;
         }
 
         .status-dot {
@@ -343,10 +454,10 @@
         }
 
         .stats-section {
-            padding: 30px;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 0;
         }
 
         .stat-group {
@@ -362,21 +473,24 @@
         }
 
         .stat-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            letter-spacing: 1px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 18px;
+            letter-spacing: 0.18px;
+            color: #6B7580;
             text-transform: uppercase;
-            font-weight: 500;
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
         .stat-value {
-            font-size: 32px;
-            font-weight: 600;
-            letter-spacing: -1px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 400;
+            font-size: 64px;
+            letter-spacing: -1.92px;
             line-height: 1;
+            color: #ffffff;
         }
 
         .stat-value.medium {
@@ -388,8 +502,11 @@
         }
 
         .stat-secondary {
-            font-size: 13px;
-            color: var(--text-secondary);
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 16px;
+            letter-spacing: -0.48px;
+            color: #6e95b1;
             margin-top: 4px;
         }
 
@@ -424,26 +541,32 @@
 
         .progress-bar {
             width: 100%;
-            height: 4px;
-            background: var(--base-light);
-            border-radius: 2px;
+            height: 20px;
+            background: #2A3843;
+            border-radius: 0;
             margin-top: 12px;
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
         }
 
         .progress-fill {
-            height: 100%;
-            background: var(--text-primary);
-            border-radius: 2px;
+            height: 8px;
+            background: #569ACF;
+            border-radius: 0;
             transition: width 1s ease;
         }
 
         .goal-label {
-            font-size: 10px;
-            color: var(--text-muted);
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 16px;
+            letter-spacing: -0.48px;
+            color: #6e95b1;
             margin-top: 6px;
-            text-align: right;
+            text-align: left;
         }
 
         .node-grid {
@@ -455,9 +578,12 @@
 
         .node {
             aspect-ratio: 1;
-            background: var(--base-light);
-            border: 1px solid var(--border);
-            border-radius: 4px;
+            background: #2A3843;
+            border-top: 1px solid #3A4854;
+            border-left: 1px solid #3A4854;
+            border-right: 1px solid #3A4854;
+            border-bottom: 4px solid #3A4854;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -469,15 +595,28 @@
         }
 
         .node.active {
-            background: var(--text-primary);
-            color: var(--base-dark);
-            border-color: var(--text-primary);
+            background: #E7F0F5;
+            color: #3A4854;
+            border-top-color: #3A4854;
+            border-left-color: #3A4854;
+            border-right-color: #3A4854;
+            border-bottom-color: #3A4854;
             font-weight: 600;
         }
 
         .node.active:hover {
             transform: scale(1.1);
             box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        .node-on-icon {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 10px;
+            height: 10px;
+            background: #50B89F;
+            border-radius: 0;
         }
 
         .node-quality-indicator {
@@ -499,25 +638,32 @@
         }
 
         .section-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-            letter-spacing: 0.5px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 18px;
+            letter-spacing: 0.18px;
+            color: #6B7580;
+            text-transform: uppercase;
             margin-bottom: 16px;
         }
 
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 8px;
             margin-top: 16px;
         }
 
         .metric-card {
-            background: var(--base-light);
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            background: #2A3843;
+            border-top: 1px solid #3A4854;
+            border-left: 1px solid #3A4854;
+            border-right: 1px solid #3A4854;
+            border-bottom: 4px solid #3A4854;
+            border-radius: 0;
             padding: 16px;
+            width: 180px;
+            min-height: 140px;
             transition: border-color 0.2s ease, transform 0.2s ease;
         }
 
@@ -531,10 +677,12 @@
         }
 
         .metric-card-label {
-            font-size: 11px;
-            color: var(--text-muted);
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #AFC1CF;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
 
@@ -552,23 +700,28 @@
         }
 
         .metric-card-value {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-family: 'Geist Mono', monospace;
+            font-weight: 400;
+            font-size: 40px;
+            letter-spacing: -1.2px;
+            color: #FFFFFF;
+            line-height: 1;
         }
 
         .metric-trend {
             margin-top: 6px;
-            font-size: 11px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
             display: flex;
             align-items: center;
             gap: 6px;
-            color: var(--text-muted);
-            letter-spacing: 0.3px;
+            color: #AFC1CF;
         }
 
         .metric-trend.trend-up {
-            color: var(--trend-up);
+            color: #7FEAC3;
         }
 
         .metric-trend.trend-down {
@@ -1064,9 +1217,199 @@
 
         .metric-card-subvalue {
             margin-top: 6px;
-            font-size: 11px;
-            color: var(--text-muted);
-            letter-spacing: 0.3px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #AFC1CF;
+        }
+
+        .metric-card-info {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 12px;
+            letter-spacing: 0.24px;
+            color: #6B7580;
+            margin-top: 6px;
+        }
+
+        /* SYND Token Tooltip */
+        .synd-tooltip {
+            position: fixed;
+            z-index: 1200;
+            width: 360px;
+            background: #2A3843;
+            border-top: 1px solid #3A4854;
+            border-left: 1px solid #3A4854;
+            border-right: 1px solid #3A4854;
+            border-bottom: 4px solid #3A4854;
+            border-radius: 0;
+            padding: 16px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.16s ease, transform 0.16s ease;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .synd-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .synd-tooltip-title {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #AFC1CF;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .synd-tooltip-price {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 400;
+            font-size: 32px;
+            letter-spacing: -0.96px;
+            color: #FFFFFF;
+            line-height: 1;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .synd-tooltip-change {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #7FEAC3;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .synd-tooltip-chart {
+            height: 50px !important;
+            width: 100% !important;
+            min-height: 50px;
+            max-height: 50px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+            display: block;
+        }
+
+        .synd-tooltip-description {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 12px;
+            letter-spacing: 0.24px;
+            color: #6B7580;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+
+        /* SYND Bottom Sheet */
+        .synd-bottom-sheet-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .synd-bottom-sheet-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .synd-bottom-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1200;
+            background: #2A3843;
+            border-top: 1px solid #3A4854;
+            border-left: 1px solid #3A4854;
+            border-right: 1px solid #3A4854;
+            border-bottom: 4px solid #3A4854;
+            border-radius: 0;
+            padding: 30px;
+            transform: translateY(100%);
+            transition: transform 0.24s ease;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .synd-bottom-sheet.visible {
+            transform: translateY(0);
+        }
+
+        .synd-bottom-sheet-title {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #AFC1CF;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .synd-bottom-sheet-price {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 400;
+            font-size: 40px;
+            letter-spacing: -1.2px;
+            color: #FFFFFF;
+            line-height: 1;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .synd-bottom-sheet-change {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #7FEAC3;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .synd-bottom-sheet-chart {
+            height: 120px;
+            width: 100%;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .synd-bottom-sheet-description {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 12px;
+            letter-spacing: 0.24px;
+            color: #6B7580;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+
+        .synd-link {
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-color: #569ACF;
+            text-underline-offset: 2px;
+            transition: color 0.2s ease;
+        }
+
+        .synd-link:hover {
+            color: #569ACF;
         }
 
         .staker-list {
@@ -1121,14 +1464,16 @@
         }
 
         .timestamp {
-            position: absolute;
-            top: 30px;
-            right: 30px;
-            font-size: 11px;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-            z-index: 10;
+            display: flex;
+            align-items: center;
+        }
+
+        .timestamp #timestamp {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 12px;
+            letter-spacing: -0.36px;
+            color: #6e95b1;
         }
 
         .error-message {
@@ -1236,7 +1581,10 @@
         .chart-container {
             position: relative;
             background: rgba(14, 19, 24, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 4px solid rgba(255, 255, 255, 0.05);
             border-radius: 10px;
             padding: 22px;
             margin-bottom: 30px;
@@ -1269,24 +1617,37 @@
             top: 28px;
             left: 28px;
             background: rgba(15, 20, 25, 0.9);
-            border: 1px solid rgba(72, 90, 105, 0.6);
-            border-radius: 10px;
-            padding: 16px 20px;
-            width: 260px;
+            border-top: 1px solid rgba(72, 90, 105, 0.6);
+            border-left: 1px solid rgba(72, 90, 105, 0.6);
+            border-right: 1px solid rgba(72, 90, 105, 0.6);
+            border-bottom: 4px solid rgba(72, 90, 105, 0.6);
+            border-radius: 0;
+            padding: 20px 24px;
+            width: 320px;
             color: var(--text-primary);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
             backdrop-filter: blur(6px);
             box-shadow: 0 16px 40px rgba(8, 12, 16, 0.4);
+            z-index: 2;
         }
 
         .stadium-stage-indicator .stage-header {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 18px;
+            letter-spacing: -0.54px;
+            margin-bottom: 8px;
+            color: #6B7580;
+            text-transform: uppercase;
+        }
+
+        .stadium-stage-indicator .stage-subheader {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
             font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.6px;
-            margin-bottom: 10px;
-            color: var(--text-secondary);
+            letter-spacing: 0.24px;
+            margin-bottom: 20px;
+            color: #AFC1CF;
+            text-transform: none;
         }
 
         .stadium-stage-indicator .stage-section {
@@ -1294,48 +1655,76 @@
         }
 
         .stadium-stage-indicator .stage-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-            letter-spacing: 0.5px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            margin-bottom: 6px;
+            color: #569ACF;
+            text-transform: uppercase;
         }
 
         .stadium-stage-indicator .stage-value {
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #569ACF;
+            text-transform: uppercase;
         }
 
         .stadium-stage-indicator .stage-desc {
-            font-size: 10px;
-            color: var(--text-secondary);
-            line-height: 1.4;
-            margin-top: 4px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 400;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #AFC1CF;
+            line-height: 1.5;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
         }
 
         .stadium-stage-indicator .stage-progress {
             position: relative;
-            height: 6px;
-            background: rgba(36, 47, 56, 0.8);
-            border-radius: 4px;
+            height: 20px;
+            background: #2A3843;
+            border-radius: 0;
             margin: 10px 0 6px;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
         }
 
         .stadium-stage-indicator .stage-progress-fill {
             position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
+            top: 50%;
+            left: 4px;
+            transform: translateY(-50%);
+            height: 8px;
             width: 0;
-            background: linear-gradient(90deg, #73FFE4 0%, #4CB8FF 100%);
+            background: #569ACF;
+            border-radius: 0;
+            box-sizing: border-box;
         }
 
-        .stadium-stage-indicator .stage-progress-text,
+        .stadium-stage-indicator .stage-progress-text {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 300;
+            font-size: 12px;
+            letter-spacing: -0.36px;
+            color: #6E95B1;
+            margin-top: 8px;
+        }
+
         .stadium-stage-indicator .stage-goal {
-            font-size: 10px;
-            color: var(--text-secondary);
-            letter-spacing: 0.4px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 400;
+            font-size: 14px;
+            letter-spacing: 0.28px;
+            color: #AFC1CF;
+            text-transform: uppercase;
         }
 
         .stadium-stage-indicator .stage-divider {
@@ -1555,26 +1944,70 @@
             color: var(--text-secondary);
         }
 
-        .chart-toggle {
+        .visualizer-nav {
             position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--base-light);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            font-size: 11px;
-            cursor: pointer;
-            border-radius: 4px;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            gap: 24px;
             z-index: 6;
-            text-transform: uppercase;
+        }
+
+        .visualizer-nav-button {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 0;
+            font-family: 'Geist Mono', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: lowercase;
             letter-spacing: 0.5px;
             transition: all 0.2s ease;
         }
 
-        .chart-toggle:hover {
-            background: var(--border);
+        .visualizer-nav-button:hover {
+            opacity: 0.8;
+        }
+
+        .visualizer-nav-button .nav-checkbox {
+            width: 16px;
+            height: 16px;
+            border: 1px solid var(--border);
+            background: #2A3843;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .visualizer-nav-button.active .nav-checkbox {
+            background: #2A3843;
+            border-color: #2A3843;
+        }
+
+        .visualizer-nav-button.active .nav-checkbox::after {
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: #569ACF;
+            display: block;
+        }
+
+        .visualizer-nav-button .nav-label {
+            text-decoration: none;
+            transition: text-decoration 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .visualizer-nav-button.active .nav-label {
+            text-decoration: underline;
+            text-decoration-color: #569ACF;
+            text-underline-offset: 4px;
+            color: #569ACF;
         }
 
         /* Node Details Modal */
@@ -1942,17 +2375,32 @@
             }
 
             .stats-section {
-                padding: 20px;
-                gap: 20px;
+                padding: 0;
+                gap: 0;
             }
 
-            .header-section {
+            .section-border-bottom {
+                padding: 20px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .header-section.section-border-bottom {
+                padding: 20px;
+            }
+
+            .sys-status-section.section-border-bottom {
                 padding: 20px;
             }
 
             .metric-grid {
                 grid-template-columns: 1fr;
-                gap: 12px;
+                gap: 8px;
+            }
+
+            .metric-card {
+                width: 100%;
+                min-height: 140px;
             }
 
             .node-grid {
@@ -1965,7 +2413,8 @@
             }
 
             .stat-value {
-                font-size: 24px;
+                font-size: 64px;
+                letter-spacing: -1.92px;
             }
 
             .stat-value.medium {
@@ -1989,6 +2438,42 @@
             .charts-overlay {
                 display: none !important;
             }
+
+            .synd-bottom-sheet {
+                padding: 16px;
+                max-height: calc(100vh - 32px);
+                overflow: hidden;
+            }
+
+            .synd-bottom-sheet-title {
+                margin-bottom: 4px;
+                font-size: 11px;
+            }
+
+            .synd-bottom-sheet-price {
+                font-size: 28px;
+                margin-bottom: 2px;
+                line-height: 1;
+            }
+
+            .synd-bottom-sheet-change {
+                margin-bottom: 6px;
+                font-size: 11px;
+            }
+
+            .synd-bottom-sheet-chart {
+                height: 30px !important;
+                min-height: 30px;
+                max-height: 30px;
+                margin-bottom: 6px;
+            }
+
+            .synd-bottom-sheet-description {
+                font-size: 10px;
+                line-height: 1.2;
+                display: block;
+                margin-top: 0;
+            }
         }
 
         @media (max-width: 1024px) and (min-width: 769px) {
@@ -2001,10 +2486,23 @@
             }
         }
     </style>
+    <svg style="position: absolute; width: 0; height: 0;">
+        <defs>
+            <filter id="barrel-distortion" x="0%" y="0%" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="screen-curvature">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+                <feOffset in="blur" dx="0" dy="0" result="offsetBlur"/>
+                <feComponentTransfer>
+                    <feFuncA type="discrete" tableValues="0 1"/>
+                </feComponentTransfer>
+            </filter>
+        </defs>
+    </svg>
 </head>
 <body>
-    <div class="timestamp" id="timestamp">00:00:00</div>
-
     <div class="container">
         <!-- Left: Isometric View -->
         <div class="iso-container">
@@ -2015,23 +2513,14 @@
                 <div class="corner bl"></div>
                 <div class="corner br"></div>
             </div>
-            <div class="iso-label label-top">STAKING INFRASTRUCTURE</div>
+            <!-- <div class="iso-label label-top">staking infrastructure</div> -->
             <div class="iso-label label-bottom">APPCHAIN 574014</div>
             <div class="stadium-stage-indicator" id="stadiumStageIndicator">
-                <div class="stage-header">Stadium Build Campaign</div>
-                <div class="stage-helper-text">Preview each milestone and see the full build-out.</div>
-                <div class="stage-timeline" id="stageTimeline"></div>
-                <div class="stage-preview-banner" id="stagePreviewBanner" aria-hidden="true">
-                    <div>
-                        <div class="stage-preview-label">Visualizer Preview</div>
-                        <div class="stage-preview-value" id="stagePreviewLabel">Foundation · 250K SYND</div>
-                    </div>
-                    <button type="button" class="stage-preview-reset" id="stagePreviewReset">Return to Live</button>
-                </div>
+                <div class="stage-header">STAKING CAMPAIGN</div>
+                <div class="stage-subheader">Stake $SYND to Stadium to build our digital arena</div>
                 <div class="stage-section">
-                    <div class="stage-label">Current Stage</div>
-                    <div class="stage-value" id="stageCurrentLabel">Foundation</div>
-                    <div class="stage-desc" id="stageCurrentDescription">Laying the foundation structure.</div>
+                    <div class="stage-label" id="stageCurrentLabel">I. FOUNDATION</div>
+                    <div class="stage-desc" id="stageCurrentDescription">LAY STRUCTURAL SUPPORTS, UTILITIES, AND ACCESS TUNNELS</div>
                     <div class="stage-progress">
                         <div class="stage-progress-fill" id="stageProgressFill"></div>
                     </div>
@@ -2039,19 +2528,20 @@
                 </div>
                 <div class="stage-divider"></div>
                 <div class="stage-section">
-                    <div class="stage-label">Next Unlock</div>
-                    <div class="stage-value" id="stageNextLabel">Lower Bowl</div>
-                    <div class="stage-desc" id="stageNextDescription">Raise the lower seating bowl.</div>
-                    <div class="stage-goal" id="stageNextGoal">Unlock at 250K SYND</div>
+                    <div class="stage-goal" id="stageNextLabel">NEXT STEP [2/4]</div>
+                    <div class="stage-value" id="stageNextValue">II. LOWER BOWL</div>
+                    <div class="stage-desc" id="stageNextDescription" style="display: none;"></div>
+                    <div class="stage-goal" id="stageNextGoal" style="display: none;">Unlock at 250K SYND</div>
                 </div>
             </div>
-            <svg id="stadiumSvg" viewBox="0 0 900 900" role="img" aria-label="Stadium construction visualizer"></svg>
+            <div class="stadium-image-container">
+                <img id="stadiumImage" src="stadium_repair_dodge.png" alt="Stadium visualizer">
+            </div>
             
             <!-- Charts Overlay -->
             <div class="charts-overlay" id="chartsOverlay">
                 <div class="charts-header">
                     <div class="charts-title">Analytics Dashboard</div>
-                    <button class="charts-close" onclick="toggleCharts()">CLOSE</button>
                 </div>
                 <div class="chart-container">
                     <canvas id="totalStakedChart"></canvas>
@@ -2064,7 +2554,16 @@
                 </div>
             </div>
             
-            <button class="chart-toggle" onclick="toggleCharts()" id="chartToggle">SHOW CHARTS</button>
+            <div class="visualizer-nav">
+                <button class="visualizer-nav-button" id="visualizerNavBtn" onclick="setVisualizerView('visualizer')">
+                    <span class="nav-checkbox"></span>
+                    <span class="nav-label">visualizer</span>
+                </button>
+                <button class="visualizer-nav-button" id="dashboardNavBtn" onclick="setVisualizerView('dashboard')">
+                    <span class="nav-checkbox"></span>
+                    <span class="nav-label">dashboard</span>
+                </button>
+            </div>
         </div>
 
         <!-- Mobile Visualizer Toggle -->
@@ -2074,15 +2573,23 @@
 
         <!-- Right: Data Panels -->
         <div class="data-panels">
-            <div class="header-section">
-                <div class="main-title">Stadium Terminal</div>
-                <div class="subtitle">Staking tracker for Stadium appchain</div>
-                <div>
-                    <span class="status-badge" id="statusBadge">
-                        <span class="status-dot"></span>
-                        <span id="statusText">INITIALIZING</span>
-                    </span>
+            <div class="header-section section-border-bottom">
+                <div class="header-top-row">
+                    <img src="mini_logo.svg" alt="Stadium logo" class="header-logo">
+                    <div class="timestamp">
+                        <span id="timestamp">00:00:00</span>
                 </div>
+                </div>
+                <div class="main-title">stadium_terminal</div>
+                <div class="subtitle">public tracker for stadium chain</div>
+            </div>
+            <div class="sys-status-section section-border-bottom">
+                <div class="sys-status-header">SYS STATUS</div>
+                <div class="sys-status-content">
+                    <span class="status-indicator-square"></span>
+                    <span class="status-text" id="statusText">staking operational</span>
+                </div>
+                <div class="epoch-info" id="epochInfo">epoch 1 - OCT 30 - NOV 29</div>
             </div>
 
             <!-- Loading State -->
@@ -2100,7 +2607,7 @@
             <div id="mainContent" style="display: none;">
                 <div class="stats-section">
                     <!-- Total Staked -->
-                    <div class="stat-group">
+                    <div class="stat-group section-border-bottom">
                         <div class="stat-item" data-tooltip-key="totalStaked">
                             <div class="stat-label metric-label-with-info">
                                 <span>Total Staked</span>
@@ -2114,16 +2621,14 @@
                             <div class="goal-label" id="goalLabel">Goal: --</div>
                             <div class="stat-action">
                                 <a class="external-action-button" href="https://commons.syndicate.io" target="_blank" rel="noopener noreferrer">
-                                    Stake on Syndicate Commons
+                                    STAKE $SYND
                                 </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="divider"></div>
-
                     <!-- Metrics Grid -->
-                    <div>
+                    <div class="section-border-bottom">
                         <div class="section-title">Network Metrics</div>
                         <div class="metric-grid">
                             <div class="metric-card interactive" data-metric="activeNodes" data-tooltip-key="activeNodes">
@@ -2179,20 +2684,16 @@
                         </div>
                     </div>
 
-                    <div class="divider"></div>
-
                     <!-- Node Status -->
-                    <div>
+                    <div class="section-border-bottom">
                         <div class="section-title">Node Status</div>
                         <div class="node-grid" id="nodeGrid">
                             <!-- Generated by JS -->
                         </div>
                     </div>
 
-                    <div class="divider"></div>
-
                     <!-- Position Details -->
-                    <div>
+                    <div class="section-border-bottom">
                         <div class="section-title">Network Position</div>
                         <div class="mini-stat">
                             <span class="mini-stat-label">Current Rank</span>
@@ -2208,20 +2709,16 @@
                         </div>
                     </div>
 
-                    <div class="divider"></div>
-
                     <!-- Top Stakers -->
-                    <div>
+                    <div class="section-border-bottom">
                         <div class="section-title">Primary Nodes</div>
                         <div class="staker-list" id="topStakers">
                             <!-- Generated by JS -->
                         </div>
                     </div>
 
-                    <div class="divider"></div>
-
                     <!-- Weekly Snapshots -->
-                    <div>
+                    <div class="section-border-bottom">
                         <div class="section-title">Weekly Snapshots</div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
                             Top 10 captured every Friday
@@ -2258,6 +2755,25 @@
         <div class="metric-bottom-sheet-title" id="metricBottomSheetTitle">Metric Title</div>
         <div class="metric-bottom-sheet-body" id="metricBottomSheetBody"></div>
         <button class="metric-bottom-sheet-close" type="button" id="metricBottomSheetClose">Close</button>
+    </div>
+
+    <!-- SYND Token Tooltip -->
+    <div class="synd-tooltip" id="syndTooltip">
+        <div class="synd-tooltip-title">SYND Token</div>
+        <div class="synd-tooltip-price" id="syndTooltipPrice">$0.00</div>
+        <div class="synd-tooltip-change" id="syndTooltipChange">—</div>
+        <canvas class="synd-tooltip-chart" id="syndTooltipChart"></canvas>
+        <div class="synd-tooltip-description">Native token of the Syndicate Network, used for staking and governance.</div>
+    </div>
+
+    <!-- SYND Bottom Sheet -->
+    <div class="synd-bottom-sheet-overlay" id="syndBottomSheetOverlay"></div>
+    <div class="synd-bottom-sheet" id="syndBottomSheet" aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1">
+        <div class="synd-bottom-sheet-title">SYND Token</div>
+        <div class="synd-bottom-sheet-price" id="syndBottomSheetPrice">$0.00</div>
+        <div class="synd-bottom-sheet-change" id="syndBottomSheetChange">—</div>
+        <canvas class="synd-bottom-sheet-chart" id="syndBottomSheetChart"></canvas>
+        <div class="synd-bottom-sheet-description">Native token of the Syndicate Network, used for staking and governance. SYND powers the network's validator rewards and appchain emissions.</div>
     </div>
 
     <!-- Node Details Modal -->
@@ -2478,7 +2994,7 @@
         function updateTimestamp() {
             const now = new Date();
             document.getElementById('timestamp').textContent = 
-                now.toLocaleTimeString('en-US', { hour12: false });
+                now.toLocaleTimeString('en-US', { hour12: false }) + ' local';
         }
         setInterval(updateTimestamp, 1000);
         updateTimestamp();
@@ -4509,7 +5025,6 @@
         const isoContainer = document.querySelector('.iso-container');
 
         let visualizerStakers = [];
-        let previewStageId = null;
         let liveTotalStaked = 0;
 
         function clamp(value, min, max) {
@@ -4577,89 +5092,11 @@
         }
 
         function getVisualizerTotal() {
-            if (previewStageId) {
-                const stage = getStageById(previewStageId);
-                return getStagePreviewTotal(stage);
-            }
             return liveTotalStaked;
         }
 
-        function renderStageTimelineIfNeeded() {
-            const timeline = document.getElementById('stageTimeline');
-            if (!timeline || timeline.dataset.initialized === 'true') return;
-
-            timeline.innerHTML = STADIUM_STAGES.map((stage, index) => {
-                const unlockLabel = getStageTimelineLabel(stage);
-                return `
-                    <button type="button" class="stage-item" data-stage-id="${stage.id}">
-                        <span class="stage-item-index">${String(index + 1).padStart(2, '0')}</span>
-                        <div class="stage-item-content">
-                            <span class="stage-item-label">${stage.label}</span>
-                            <span class="stage-item-threshold">${unlockLabel}</span>
-                        </div>
-                    </button>
-                `;
-            }).join('');
-
-            timeline.dataset.initialized = 'true';
-
-            timeline.querySelectorAll('.stage-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const stageId = item.getAttribute('data-stage-id');
-                    if (!stageId) return;
-                    if (previewStageId === stageId) {
-                        setVisualizerPreview(null);
-                    } else {
-                        setVisualizerPreview(stageId);
-                    }
-                });
-            });
-        }
-
-        function updateStageTimeline(totalStaked, previewId = null) {
-            const timeline = document.getElementById('stageTimeline');
-            if (!timeline) return;
-
-            timeline.querySelectorAll('.stage-item').forEach(item => {
-                const stageId = item.getAttribute('data-stage-id');
-                const stage = getStageById(stageId);
-                if (!stage) return;
-
-                item.classList.remove('completed', 'active', 'upcoming', 'is-preview');
-
-                let status = 'upcoming';
-                if (stage.max === Infinity) {
-                    status = totalStaked >= stage.min ? 'active' : 'upcoming';
-                } else if (totalStaked >= stage.max) {
-                    status = 'completed';
-                } else if (totalStaked >= stage.min) {
-                    status = 'active';
-                }
-
-                item.classList.add(status);
-
-                if (previewId === stageId) {
-                    item.classList.add('is-preview');
-                }
-            });
-        }
-
         function refreshStageIndicator() {
-            updateStageIndicator(liveTotalStaked, previewStageId);
-        }
-
-        function setVisualizerPreview(stageId) {
-            previewStageId = stageId;
-            refreshStageIndicator();
-            renderVisualizer();
-        }
-
-        renderStageTimelineIfNeeded();
-        updateStageTimeline(liveTotalStaked, previewStageId);
-
-        const stagePreviewResetButton = document.getElementById('stagePreviewReset');
-        if (stagePreviewResetButton) {
-            stagePreviewResetButton.addEventListener('click', () => setVisualizerPreview(null));
+            updateStageIndicator(liveTotalStaked);
         }
 
 
@@ -4669,35 +5106,19 @@
 
 
         function renderVisualizer() {
-            if (!stadiumSvg) return;
+            const stadiumImage = document.getElementById('stadiumImage');
+            if (!stadiumImage) return;
             if (window.innerWidth <= 768 && !isoContainer.classList.contains('visible')) {
                 return;
             }
-
-            let progress;
-
-            if (previewStageId) {
-                const stage = getStageById(previewStageId);
-                const previewTotal = stage ? getStagePreviewTotal(stage) : 0;
-                progress = computeStadiumProgress(previewTotal);
-            } else if (currentStats) {
-                const totalStaked = getVisualizerTotal();
-                progress = computeStadiumProgress(totalStaked);
-            } else {
-                progress = { lower: 0, upper: 0, crown: 0 };
-            }
-
-            renderStadiumSvg(progress);
+            // Image is static, no rendering logic needed
         }
 
         function drawNodeMarkers() {}
 
-        function updateStageIndicator(totalStaked, previewStage = null) {
+        function updateStageIndicator(totalStaked) {
             const indicator = document.getElementById('stadiumStageIndicator');
             if (!indicator) return;
-
-            renderStageTimelineIfNeeded();
-            updateStageTimeline(totalStaked, previewStage);
 
             const stageCurrentLabel = document.getElementById('stageCurrentLabel');
             const stageCurrentDescription = document.getElementById('stageCurrentDescription');
@@ -4706,9 +5127,6 @@
             const stageNextLabel = document.getElementById('stageNextLabel');
             const stageNextDescription = document.getElementById('stageNextDescription');
             const stageNextGoal = document.getElementById('stageNextGoal');
-            const stagePreviewBanner = document.getElementById('stagePreviewBanner');
-            const stagePreviewLabel = document.getElementById('stagePreviewLabel');
-            const stagePreviewResetButton = document.getElementById('stagePreviewReset');
 
             const currentStage = STADIUM_STAGES.find(stage => totalStaked < stage.max) || STADIUM_STAGES[STADIUM_STAGES.length - 1];
             const currentIndex = STADIUM_STAGES.indexOf(currentStage);
@@ -4718,13 +5136,25 @@
             const stageMax = currentStage.max;
             const stageProgress = stageMax === Infinity ? 1 : clamp((totalStaked - stageMin) / (stageMax - stageMin), 0, 1);
 
-            if (stageCurrentLabel) stageCurrentLabel.textContent = currentStage.label;
-            if (stageCurrentDescription) stageCurrentDescription.textContent = currentStage.description;
-            if (stageProgressFill) stageProgressFill.style.width = `${stageProgress * 100}%`;
+            // Format stage labels with Roman numerals
+            const stageLabels = ['I. FOUNDATION', 'II. LOWER BOWL', 'III. UPPER BOWL', 'IV. ILLUMINATION'];
+            
+            if (stageCurrentLabel) {
+                stageCurrentLabel.textContent = stageLabels[currentIndex] || currentStage.label.toUpperCase();
+            }
+            if (stageCurrentDescription) {
+                stageCurrentDescription.textContent = currentStage.description.toUpperCase();
+            }
+            if (stageProgressFill) {
+                const progressBar = stageProgressFill.parentElement;
+                const availableWidth = progressBar ? progressBar.offsetWidth - 8 : 0; // Account for 4px padding on each side
+                const fillWidth = (stageProgress * availableWidth);
+                stageProgressFill.style.width = `${fillWidth}px`;
+            }
 
             if (stageProgressText) {
                 if (stageMax === Infinity) {
-                    stageProgressText.textContent = `${formatNumber(totalStaked)} SYND staked`;
+                    stageProgressText.textContent = `${formatCompact(totalStaked)} / ${formatCompact(totalStaked)} SYND`;
                 } else {
                     const currentValue = clamp(totalStaked, stageMin, stageMax);
                     stageProgressText.textContent = `${formatCompact(currentValue)} / ${formatCompact(stageMax)} SYND`;
@@ -4732,34 +5162,21 @@
             }
 
             if (nextStage) {
-                if (stageNextLabel) stageNextLabel.textContent = nextStage.label;
-                if (stageNextDescription) stageNextDescription.textContent = nextStage.description;
-                if (stageNextGoal) stageNextGoal.textContent = `Unlock at ${formatCompact(nextStage.min)} SYND`;
+                const nextIndex = STADIUM_STAGES.indexOf(nextStage);
+                const stageNextValue = document.getElementById('stageNextValue');
+                if (stageNextLabel) {
+                    stageNextLabel.textContent = `NEXT STEP [${nextIndex + 1}/4]`;
+                }
+                if (stageNextValue) {
+                    stageNextValue.textContent = stageLabels[nextIndex] || nextStage.label.toUpperCase();
+                }
             } else {
-                if (stageNextLabel) stageNextLabel.textContent = 'Stadium Complete';
-                if (stageNextDescription) stageNextDescription.textContent = 'All construction phases are complete.';
-                if (stageNextGoal) stageNextGoal.textContent = 'Thank you for helping complete Stadium Terminal.';
-            }
-
-            if (stagePreviewBanner) {
-                if (previewStage) {
-                    const previewStageData = getStageById(previewStage);
-                    if (previewStageData) {
-                        stagePreviewBanner.classList.add('active');
-                        stagePreviewBanner.setAttribute('aria-hidden', 'false');
-                        if (stagePreviewLabel) {
-                            stagePreviewLabel.textContent = `${previewStageData.label} · ${formatStagePreviewAmount(previewStageData)}`;
-                        }
-                        if (stagePreviewResetButton) {
-                            stagePreviewResetButton.setAttribute('aria-hidden', 'false');
-                        }
-                    }
-                } else {
-                    stagePreviewBanner.classList.remove('active');
-                    stagePreviewBanner.setAttribute('aria-hidden', 'true');
-                    if (stagePreviewResetButton) {
-                        stagePreviewResetButton.setAttribute('aria-hidden', 'true');
-                    }
+                if (stageNextLabel) {
+                    stageNextLabel.textContent = 'STADIUM COMPLETE';
+                }
+                const stageNextValue = document.getElementById('stageNextValue');
+                if (stageNextValue) {
+                    stageNextValue.textContent = 'ALL PHASES COMPLETE';
                 }
             }
         }
@@ -4791,21 +5208,56 @@
                 } else {
                     usdFormatted = `$${totalUsdValue.toFixed(0)}`;
                 }
-                document.getElementById('totalStakedSubtitle').textContent = 
-                    `SYND locked in network (${usdFormatted} USD)`;
+                const subtitleEl = document.getElementById('totalStakedSubtitle');
+                subtitleEl.innerHTML = `of <span class="synd-link" id="syndLink">$SYND</span> locked in network (${usdFormatted} USD)`;
+                setupSyndTooltip();
             } else {
-                document.getElementById('totalStakedSubtitle').textContent = 'SYND locked in network';
+                const subtitleEl = document.getElementById('totalStakedSubtitle');
+                subtitleEl.innerHTML = `of <span class="synd-link" id="syndLink">$SYND</span> locked in network`;
+                setupSyndTooltip();
             }
 
             // Update goals progress
             if (stats.goals && stats.goals.current) {
                 const goalProgress = typeof stats.goals.progress === 'number' ? stats.goals.progress : 0;
-                document.getElementById('goalProgress').style.width = `${Math.min(goalProgress, 100)}%`;
-                document.getElementById('goalLabel').textContent = 
-                    `Goal: ${stats.goals.current.label} (${goalProgress.toFixed(1)}%)`;
+                const goalProgressBar = document.getElementById('goalProgress');
+                if (goalProgressBar) {
+                    const progressBar = goalProgressBar.parentElement;
+                    const availableWidth = progressBar ? progressBar.offsetWidth - 8 : 0; // Account for 4px padding on each side
+                    const fillWidth = (Math.min(goalProgress, 100) / 100) * availableWidth;
+                    goalProgressBar.style.width = `${fillWidth}px`;
+                }
+                const goalLabel = stats.goals.current.label.replace(' SYND', ' $SYND');
+                document.getElementById('goalLabel').innerHTML = 
+                    `NEXT GOAL: ${goalLabel} / ${goalProgress.toFixed(1)}% COMPLETE`;
             } else {
-                document.getElementById('goalProgress').style.width = '0%';
-                document.getElementById('goalLabel').textContent = 'Goal: --';
+                const goalProgressBar = document.getElementById('goalProgress');
+                if (goalProgressBar) {
+                    goalProgressBar.style.width = '0px';
+                }
+                document.getElementById('goalLabel').textContent = 'NEXT GOAL: --';
+            }
+
+            // Update epoch info
+            if (stats.emissions && stats.emissions.epochNumber) {
+                const epochNumber = stats.emissions.epochNumber;
+                // Calculate epoch dates (assuming epoch 1 starts Oct 30, 2024)
+                const epochStartDate = new Date('2024-10-30');
+                const epochDuration = stats.emissions.epochDurationDays || 30;
+                const currentEpochStart = new Date(epochStartDate);
+                currentEpochStart.setDate(epochStartDate.getDate() + (epochNumber - 1) * epochDuration);
+                const currentEpochEnd = new Date(currentEpochStart);
+                currentEpochEnd.setDate(currentEpochStart.getDate() + epochDuration);
+                
+                const startMonth = currentEpochStart.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                const startDay = currentEpochStart.getDate();
+                const endMonth = currentEpochEnd.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                const endDay = currentEpochEnd.getDate();
+                
+                const epochInfoEl = document.getElementById('epochInfo');
+                if (epochInfoEl) {
+                    epochInfoEl.textContent = `epoch ${epochNumber} - ${startMonth} ${startDay} - ${endMonth} ${endDay}`;
+                }
             }
             
             // Store all stakers for node details
@@ -4957,16 +5409,10 @@
                     node.classList.add('active');
                     node.textContent = i + 1;
                     
-                    // Add quality indicator
-                    const quality = sortedStakers[i].quality?.score || 0;
-                    const qualityIndicator = document.createElement('div');
-                    qualityIndicator.className = 'node-quality-indicator';
-                    if (quality >= 70) {
-                        qualityIndicator.classList.add('high');
-                    } else if (quality >= 40) {
-                        qualityIndicator.classList.add('medium');
-                    }
-                    node.appendChild(qualityIndicator);
+                    // Add on icon for active nodes (replaces quality indicator)
+                    const onIcon = document.createElement('div');
+                    onIcon.className = 'node-on-icon';
+                    node.appendChild(onIcon);
                     
                     // Make clickable - ensure we have the address
                     const stakerAddress = sortedStakers[i].address;
@@ -5141,8 +5587,338 @@
         }
 
         // Initialize
+        // SYND Token Tooltip and Bottom Sheet
+        let syndPriceData = null;
+        let syndTooltipChart = null;
+        let syndBottomSheetChart = null;
+        let cachedPriceHistory = null; // Cache the generated price history
+
+        async function fetchSyndPrice() {
+            try {
+                const response = await fetch('/api/price');
+                if (!response.ok) throw new Error('Failed to fetch price');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching SYND price:', error);
+                return null;
+            }
+        }
+
+        function createSyndPriceChart(canvasId, priceHistory) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+
+            // Destroy existing chart if it exists
+            if (canvasId === 'syndTooltipChart' && syndTooltipChart) {
+                syndTooltipChart.destroy();
+            }
+            if (canvasId === 'syndBottomSheetChart' && syndBottomSheetChart) {
+                syndBottomSheetChart.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return null;
+
+            // Use real price history from API if available
+            let labels, prices;
+            if (syndPriceData && syndPriceData.priceHistory && syndPriceData.priceHistory.length > 0) {
+                // Use real historical data from API
+                const history = syndPriceData.priceHistory;
+                console.log('Using price history from API:', history.length, 'points');
+                
+                // Sort by timestamp to ensure chronological order
+                const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+                
+                // For hourly data (24 hours), show time labels
+                // For daily data, show date labels
+                const isHourly = sortedHistory.length <= 24;
+                
+                labels = sortedHistory.map(item => {
+                    const date = new Date(item.timestamp);
+                    if (isHourly) {
+                        // Show hour:minute for hourly data
+                        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+                    } else {
+                        // Show date for daily data
+                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    }
+                });
+                prices = sortedHistory.map(item => parseFloat(item.price) || 0);
+                
+                // Calculate price range for proper scaling
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                const priceRange = maxPrice - minPrice;
+                const midPrice = (minPrice + maxPrice) / 2;
+                
+                console.log('Chart data:', { 
+                    labels: labels.length, 
+                    prices: prices.length, 
+                    minPrice, 
+                    maxPrice, 
+                    priceRange,
+                    midPrice,
+                    prices: prices.slice(0, 5) // First 5 prices for debugging
+                });
+            } else if (cachedPriceHistory) {
+                // Fallback to cached data if API history not available
+                labels = cachedPriceHistory.labels;
+                prices = cachedPriceHistory.prices;
+            } else {
+                // Last resort: generate sample data (shouldn't happen if API is working)
+                labels = [];
+                prices = [];
+                const now = Date.now();
+                const basePrice = syndPriceData?.price || 0.20;
+                
+                // Generate simple trend data for last 24 hours
+                for (let i = 23; i >= 0; i--) {
+                    const date = new Date(now - i * 60 * 60 * 1000);
+                    labels.push(date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false }));
+                    prices.push(basePrice); // Flat line if no real data
+                }
+                
+                // Cache the generated data
+                cachedPriceHistory = { labels, prices };
+            }
+
+            // Calculate Y-axis min/max to show volatility even if prices are close
+            const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+            const maxPrice = prices.length > 0 ? Math.max(...prices) : 1;
+            const priceRange = maxPrice - minPrice;
+            // If prices are very close (less than 1% variation), expand the range to show movement
+            const expandedRange = priceRange < (minPrice * 0.01) ? (minPrice * 0.02) : priceRange;
+            const yAxisMin = minPrice - (expandedRange * 0.15); // 15% padding below
+            const yAxisMax = maxPrice + (expandedRange * 0.15); // 15% padding above
+            
+            const isMobile = canvasId === 'syndBottomSheetChart';
+            const chartConfig = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Price',
+                        data: prices,
+                        borderColor: '#569ACF',
+                        backgroundColor: 'rgba(86, 154, 207, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: isMobile,
+                            backgroundColor: '#2A3843',
+                            borderColor: '#3A4854',
+                            borderWidth: 1,
+                            titleColor: '#AFC1CF',
+                            bodyColor: '#FFFFFF',
+                            padding: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return `$${context.parsed.y.toFixed(4)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                            grid: { display: false }
+                        },
+                        y: {
+                            display: false,
+                            grid: { display: false },
+                            beginAtZero: false,
+                            min: yAxisMin,
+                            max: yAxisMax
+                        }
+                    }
+                }
+            };
+
+            const chart = new Chart(ctx, chartConfig);
+            if (canvasId === 'syndTooltipChart') {
+                syndTooltipChart = chart;
+            } else {
+                syndBottomSheetChart = chart;
+            }
+            return chart;
+        }
+
+        function updateSyndTooltip(priceData) {
+            if (!priceData) return;
+
+            const priceEl = document.getElementById('syndTooltipPrice');
+            const changeEl = document.getElementById('syndTooltipChange');
+            
+            if (priceEl) {
+                priceEl.textContent = `$${priceData.price.toFixed(4)}`;
+            }
+            
+            if (changeEl && priceData.change24h !== null) {
+                const change = priceData.change24h;
+                const isPositive = change >= 0;
+                changeEl.textContent = `${isPositive ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%`;
+                changeEl.style.color = isPositive ? '#7FEAC3' : '#FF7A7A';
+            } else if (changeEl) {
+                changeEl.textContent = '—';
+            }
+
+            // Chart will be created when tooltip is shown
+        }
+
+        function updateSyndBottomSheet(priceData) {
+            if (!priceData) return;
+
+            const priceEl = document.getElementById('syndBottomSheetPrice');
+            const changeEl = document.getElementById('syndBottomSheetChange');
+            
+            if (priceEl) {
+                priceEl.textContent = `$${priceData.price.toFixed(4)}`;
+            }
+            
+            if (changeEl && priceData.change24h !== null) {
+                const change = priceData.change24h;
+                const isPositive = change >= 0;
+                changeEl.textContent = `${isPositive ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%`;
+                changeEl.style.color = isPositive ? '#7FEAC3' : '#FF7A7A';
+            }
+
+            createSyndPriceChart('syndBottomSheetChart', null);
+        }
+
+        function showSyndTooltip(event) {
+            const tooltip = document.getElementById('syndTooltip');
+            if (!tooltip) return;
+
+            const rect = event.target.getBoundingClientRect();
+            const tooltipWidth = 360;
+            let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+            
+            // Keep tooltip within viewport horizontally
+            if (left < 8) left = 8;
+            if (left + tooltipWidth > window.innerWidth - 8) {
+                left = window.innerWidth - tooltipWidth - 8;
+            }
+            
+            // Position tooltip above if it would go off bottom of screen
+            const tooltipHeight = tooltip.offsetHeight || 200; // Estimate if not yet rendered
+            let top = rect.bottom + 8;
+            if (top + tooltipHeight > window.innerHeight - 8) {
+                top = rect.top - tooltipHeight - 8;
+            }
+            
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+            tooltip.classList.add('visible');
+            
+            // Create chart when tooltip is shown (if price data is available)
+            if (syndPriceData) {
+                setTimeout(() => {
+                    const canvas = document.getElementById('syndTooltipChart');
+                    if (canvas) {
+                        canvas.style.height = '50px';
+                        canvas.style.width = '100%';
+                    }
+                    createSyndPriceChart('syndTooltipChart', null);
+                }, 50);
+            }
+        }
+
+        function hideSyndTooltip() {
+            const tooltip = document.getElementById('syndTooltip');
+            if (tooltip) {
+                tooltip.classList.remove('visible');
+            }
+        }
+
+        function showSyndBottomSheet() {
+            const overlay = document.getElementById('syndBottomSheetOverlay');
+            const sheet = document.getElementById('syndBottomSheet');
+            if (overlay && sheet) {
+                overlay.classList.add('visible');
+                sheet.classList.add('visible');
+                sheet.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function hideSyndBottomSheet() {
+            const overlay = document.getElementById('syndBottomSheetOverlay');
+            const sheet = document.getElementById('syndBottomSheet');
+            if (overlay && sheet) {
+                overlay.classList.remove('visible');
+                sheet.classList.remove('visible');
+                sheet.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function setupSyndTooltip() {
+            const syndLink = document.getElementById('syndLink');
+            if (!syndLink) return;
+
+            // Remove existing listeners to prevent duplicates
+            const newLink = syndLink.cloneNode(true);
+            syndLink.parentNode.replaceChild(newLink, syndLink);
+
+            // Load price data
+            fetchSyndPrice().then(data => {
+                if (data) {
+                    syndPriceData = data;
+                    // Clear cached price history when new real data arrives
+                    if (data.priceHistory && data.priceHistory.length > 0) {
+                        cachedPriceHistory = null;
+                    }
+                    updateSyndTooltip(data);
+                    updateSyndBottomSheet(data);
+                }
+            });
+
+            // Desktop: hover for tooltip
+            if (window.innerWidth > 768) {
+                newLink.addEventListener('mouseenter', (e) => {
+                    showSyndTooltip(e);
+                });
+                newLink.addEventListener('mouseleave', () => {
+                    hideSyndTooltip();
+                });
+            }
+
+            // Mobile: click for bottom sheet
+            newLink.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    showSyndBottomSheet();
+                }
+            });
+
+            // Close bottom sheet on overlay click (only add once)
+            const overlay = document.getElementById('syndBottomSheetOverlay');
+            if (overlay && !overlay.dataset.listenerAdded) {
+                overlay.addEventListener('click', () => {
+                    hideSyndBottomSheet();
+                });
+                overlay.dataset.listenerAdded = 'true';
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             console.log('Stadium Terminal initialized');
+            // Set initial active state for visualizer nav
+            const visualizerBtn = document.getElementById('visualizerNavBtn');
+            if (visualizerBtn) {
+                visualizerBtn.classList.add('active');
+            }
             initMetricTooltips();
             fetchData();
         });
@@ -5193,18 +5969,31 @@
         });
 
         // Charts toggle
+        function setVisualizerView(view) {
+            const visualizerBtn = document.getElementById('visualizerNavBtn');
+            const dashboardBtn = document.getElementById('dashboardNavBtn');
+            const chartsOverlay = document.getElementById('chartsOverlay');
+            
+            if (view === 'dashboard') {
+                visualizerBtn.classList.remove('active');
+                dashboardBtn.classList.add('active');
+                chartsOverlay.classList.add('visible');
+                loadCharts();
+            } else {
+                visualizerBtn.classList.add('active');
+                dashboardBtn.classList.remove('active');
+                chartsOverlay.classList.remove('visible');
+            }
+        }
+
         function toggleCharts() {
             const overlay = document.getElementById('chartsOverlay');
-            const toggle = document.getElementById('chartToggle');
             const isVisible = overlay.classList.contains('visible');
             
             if (isVisible) {
-                overlay.classList.remove('visible');
-                toggle.textContent = 'SHOW CHARTS';
+                setVisualizerView('visualizer');
             } else {
-                overlay.classList.add('visible');
-                toggle.textContent = 'HIDE CHARTS';
-                loadCharts();
+                setVisualizerView('dashboard');
             }
         }
 
@@ -5918,11 +6707,7 @@
                 body.classList.remove('visualizer-only');
                 isoContainer.classList.remove('visible');
                 toggle.textContent = 'VIEW VISUALIZER';
-                if (previewStageId) {
-                    setVisualizerPreview(null);
-            } else {
-                    refreshStageIndicator();
-                }
+                refreshStageIndicator();
             }
         }
 
@@ -5941,3 +6726,4 @@
     </script>
 </body>
 </html>
+

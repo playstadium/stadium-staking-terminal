@@ -54,7 +54,9 @@ const CONFIG = {
     CONTRACT_ADDRESS: '0xF9637B60f27AF139FC46EAa655cFBbe4E731BCdF',
     API_BASE_URL: 'https://commons.explorer.syndicate.io/api',
     STAKE_EVENT_TOPIC: '0x507ac39eb33610191cd8fd54286e91c5cc464c262861643be3978f5a9f18ab02',
-    SYND_CONTRACT_ADDRESS: '0x1bab804803159ad84b8854581aa53ac72455614e',
+    SYND_CONTRACT_ADDRESS: '0x11dc28d01984079b7efe7763b533e6ed9e3722b9',
+    SYND_POOL_ADDRESS: '0xa6f77321b8726faab89b72f28c2603b667448bc2',
+    SYND_NETWORK: 'base', // BASE network, not Ethereum
     GECKO_TERMINAL_API: 'https://api.geckoterminal.com/api/v2'
 };
 
@@ -469,12 +471,13 @@ setInterval(async () => {
     }
 }, 60 * 60 * 1000); // Check every hour
 
-// Fetch SYND price data from GeckoTerminal
+// Fetch SYND price data from GeckoTerminal ONLY (no CoinGecko)
+// NOTE: We ONLY use GeckoTerminal API - never CoinGecko or any other price API
 async function fetchSYNDPrice() {
     try {
         // GeckoTerminal API format: /simple/networks/{network}/token_price/{addresses}
-        // For Ethereum mainnet, network is 'eth'
-        const url = `${CONFIG.GECKO_TERMINAL_API}/simple/networks/eth/token_price/${CONFIG.SYND_CONTRACT_ADDRESS}`;
+        // Using BASE network, not Ethereum
+        const url = `${CONFIG.GECKO_TERMINAL_API}/simple/networks/${CONFIG.SYND_NETWORK}/token_price/${CONFIG.SYND_CONTRACT_ADDRESS}`;
         console.log('Fetching SYND price from GeckoTerminal:', url);
         
         const response = await fetch(url);
@@ -484,37 +487,108 @@ async function fetchSYNDPrice() {
         
         if (data.data && data.data.attributes) {
             const attributes = data.data.attributes;
+            const currentPrice = parseFloat(attributes.token_prices[CONFIG.SYND_CONTRACT_ADDRESS]) || 0;
+            
+            // Calculate price history for past 24 hours
+            // We'll use hourly OHLC data from the pool and calculate 24 evenly-spaced points
+            // Always use real-time current price for the most recent point
+            let priceHistory = [];
+            const now = Date.now();
+            const twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
+            
+            try {
+                // Fetch hourly OHLC data from GeckoTerminal using pool address
+                // Format: /networks/{network}/pools/{pool_address}/ohlcv/{timeframe}
+                const historyUrl = `${CONFIG.GECKO_TERMINAL_API}/networks/${CONFIG.SYND_NETWORK}/pools/${CONFIG.SYND_POOL_ADDRESS}/ohlcv/hour`;
+                console.log('Fetching historical data from GeckoTerminal:', historyUrl);
+                
+                const historyResponse = await fetch(historyUrl);
+                const historyData = await historyResponse.json();
+                
+                console.log('GeckoTerminal historical data response:', JSON.stringify(historyData, null, 2));
+                
+                if (historyData.data && historyData.data.attributes && historyData.data.attributes.ohlcv_list) {
+                    // Process all available hourly data from pool OHLC
+                    // Format: [[timestamp, open, high, low, close, volume], ...]
+                    const allHistory = historyData.data.attributes.ohlcv_list
+                        .map(([timestamp, open, high, low, close, volume]) => {
+                            const ts = timestamp < 10000000000 ? timestamp * 1000 : timestamp;
+                            const price = parseFloat(close) || parseFloat(high) || parseFloat(low) || parseFloat(open);
+                            if (!price || isNaN(price) || price <= 0) return null;
+                            return { timestamp: ts, price: price };
+                        })
+                        .filter(item => item !== null && item.timestamp >= twentyFourHoursAgo)
+                        .sort((a, b) => a.timestamp - b.timestamp);
+                    
+                    // Calculate 24 evenly-spaced hourly intervals over the past 24 hours
+                    const hourlyInterval = 60 * 60 * 1000; // 1 hour in milliseconds
+                    const calculatedHistory = [];
+                    
+                    for (let i = 0; i < 24; i++) {
+                        const targetTime = twentyFourHoursAgo + (i * hourlyInterval);
+                        
+                        // Find the closest historical data point to this target time
+                        let closestPrice = currentPrice; // Default to current price
+                        if (allHistory.length > 0) {
+                            const closest = allHistory.reduce((prev, curr) => {
+                                return Math.abs(curr.timestamp - targetTime) < Math.abs(prev.timestamp - targetTime) ? curr : prev;
+                            });
+                            closestPrice = closest.price;
+                        }
+                        
+                        calculatedHistory.push({
+                            timestamp: targetTime,
+                            price: closestPrice
+                        });
+                    }
+                    
+                    // Always use real-time current price for the most recent point (last hour)
+                    if (currentPrice > 0) {
+                        calculatedHistory[calculatedHistory.length - 1] = {
+                            timestamp: now,
+                            price: currentPrice
+                        };
+                    }
+                    
+                    priceHistory = calculatedHistory;
+                    console.log(`Calculated ${priceHistory.length} price points for past 24 hours using real-time price: ${currentPrice}`);
+                } else {
+                    console.warn('GeckoTerminal historical data format unexpected');
+                    // Fallback: create 24 points with current price
+                    if (currentPrice > 0) {
+                        for (let i = 0; i < 24; i++) {
+                            priceHistory.push({
+                                timestamp: twentyFourHoursAgo + (i * 60 * 60 * 1000),
+                                price: currentPrice
+                            });
+                        }
+                    }
+                }
+            } catch (historyError) {
+                console.warn('Could not fetch historical data from GeckoTerminal:', historyError.message);
+                // Fallback: create 24 points with current real-time price
+                if (currentPrice > 0) {
+                    for (let i = 0; i < 24; i++) {
+                        priceHistory.push({
+                            timestamp: twentyFourHoursAgo + (i * 60 * 60 * 1000),
+                            price: currentPrice
+                        });
+                    }
+                }
+            }
+            
             return {
-                price: parseFloat(attributes.token_prices[CONFIG.SYND_CONTRACT_ADDRESS]) || 0,
-                change24h: null, // Will try to get this from another endpoint if needed
+                price: currentPrice,
+                change24h: null, // GeckoTerminal doesn't provide 24h change in this endpoint
                 marketCap: null,
-                volume24h: null
+                volume24h: null,
+                priceHistory: priceHistory
             };
         }
         
         throw new Error('Failed to fetch SYND price data from GeckoTerminal');
     } catch (error) {
-        console.error('Error fetching SYND price:', error);
-        
-        // Fallback to CoinGecko if GeckoTerminal fails
-        try {
-            console.log('Trying CoinGecko fallback...');
-            const fallbackUrl = `https://api.coingecko.com/api/v3/simple/price?ids=syndicate&vs_currencies=usd&include_24hr_change=true`;
-            const fallbackResponse = await fetch(fallbackUrl);
-            const fallbackData = await fallbackResponse.json();
-            
-            if (fallbackData.syndicate) {
-                return {
-                    price: fallbackData.syndicate.usd,
-                    change24h: fallbackData.syndicate.usd_24h_change,
-                    marketCap: null,
-                    volume24h: null
-                };
-            }
-        } catch (fallbackError) {
-            console.error('Fallback also failed:', fallbackError);
-        }
-        
+        console.error('Error fetching SYND price from GeckoTerminal:', error);
         throw error;
     }
 }
