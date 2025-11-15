@@ -192,6 +192,18 @@
             z-index: 1;
         }
 
+        .stadium-image-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100vw;
+            max-height: 100vh;
+            display: block;
+            pointer-events: auto;
+        }
+
         .stadium-image-container::before {
             content: "";
             position: absolute;
@@ -2103,6 +2115,99 @@
             overflow-y: auto;
         }
 
+        /* Metric Modal Specific Styles */
+        #metricModal .modal {
+            background: #1F2A32;
+            border-top: 1px solid #3A4854;
+            border-left: 1px solid #3A4854;
+            border-right: 1px solid #3A4854;
+            border-bottom: 4px solid #3A4854;
+            width: 600px;
+            height: 758px;
+            max-width: 600px;
+            max-height: 758px;
+            border-radius: 0;
+        }
+
+        #metricModal .modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #3A4854;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1F2A32;
+        }
+
+        #metricModal .modal-title {
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 18px;
+            letter-spacing: 0.28px;
+            color: #FFFFFF;
+            text-transform: uppercase;
+        }
+
+        #metricModal .modal-close {
+            background: #AFC1CF;
+            border: 1px solid #3A4854;
+            color: #212629;
+            padding: 6px 12px;
+            font-family: 'Geist Mono', monospace;
+            font-weight: 500;
+            font-size: 11px;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 0;
+            transition: all 0.2s ease;
+        }
+
+        #metricModal .modal-close:hover {
+            background: #569ACF;
+            border-color: #3A4854;
+            color: #212629;
+        }
+
+        #metricModal .modal-close:active {
+            background: #2A3843;
+            border-color: #0E1316;
+            color: #FFFFFF;
+        }
+
+        #metricModal .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            background: #1F2A32;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Breakpoint adjustments for metric modal */
+        @media (max-width: 768px) {
+            #metricModal .modal {
+                width: calc(100% - 40px);
+                max-width: calc(100% - 40px);
+                height: auto;
+                max-height: 85vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #metricModal .modal {
+                width: calc(100% - 20px);
+                max-width: calc(100% - 20px);
+            }
+
+            #metricModal .modal-header {
+                padding: 16px 20px;
+            }
+
+            #metricModal .modal-body {
+                padding: 20px;
+            }
+        }
+
         .node-detail-item {
             margin-bottom: 20px;
         }
@@ -2556,8 +2661,8 @@
                     <div class="stage-goal" id="stageNextGoal" style="display: none;">Unlock at 250K SYND</div>
                 </div>
             </div>
-            <div class="stadium-image-container">
-                <img id="stadiumImage" src="stadium_repair_dodge.png" alt="Stadium visualizer">
+            <div class="stadium-image-container" id="asciiVisualizerContainer">
+                <img id="stadiumImage" src="stadium_repair_dodge.png" alt="Stadium visualizer" style="display: none;">
             </div>
             
             <!-- Charts Overlay -->
@@ -2825,6 +2930,9 @@
         </div>
     </div>
 
+    <!-- Three.js for ASCII Visualizer -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+    <script src="ascii-visualizer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Configuration
@@ -5147,13 +5255,98 @@
         function drawSeatingTerraces() {}
 
 
+        let asciiVisualizer = null;
+
         function renderVisualizer() {
-            const stadiumImage = document.getElementById('stadiumImage');
-            if (!stadiumImage) return;
+            const container = document.getElementById('asciiVisualizerContainer');
+            if (!container) {
+                console.warn('renderVisualizer: Container not found');
+                return;
+            }
+            
             if (window.innerWidth <= 768 && !isoContainer.classList.contains('visible')) {
                 return;
             }
-            // Image is static, no rendering logic needed
+            
+            // Initialize visualizer if not already created
+            if (!asciiVisualizer) {
+                if (typeof AsciiVisualizer === 'undefined') {
+                    console.error('renderVisualizer: AsciiVisualizer class not found. Make sure ascii-visualizer.js is loaded.');
+                    return;
+                }
+                
+                console.log('renderVisualizer: Creating AsciiVisualizer instance');
+                
+                // Ensure container is visible and has dimensions
+                const rect = container.getBoundingClientRect();
+                console.log('renderVisualizer: Container rect:', rect.width, 'x', rect.height);
+                
+                if (rect.width === 0 || rect.height === 0) {
+                    console.warn('renderVisualizer: Container has no dimensions, waiting...');
+                    setTimeout(() => renderVisualizer(), 200);
+                    return;
+                }
+                
+                asciiVisualizer = new AsciiVisualizer(container, {
+                    cellSize: 4,
+                    invert: false,
+                    colorMode: true,
+                    asciiStyle: 0, // 0 = standard
+                    postfx: {
+                        scanlineIntensity: 0,
+                        scanlineCount: 300,
+                        targetFPS: 1,
+                        jitterIntensity: 0,
+                        jitterSpeed: 2,
+                        mouseGlowEnabled: false,
+                        mouseGlowRadius: 200,
+                        mouseGlowIntensity: 1.5,
+                        vignetteIntensity: 0,
+                        vignetteRadius: 0.7,
+                        colorPalette: 0, // 0 = original, 1 = green, 2 = amber, 3 = cyan, 4 = blue
+                        curvature: 0,
+                        aberrationStrength: 0,
+                        noiseIntensity: 0,
+                        noiseScale: 2,
+                        noiseSpeed: 1,
+                        waveAmplitude: 0,
+                        waveFrequency: 1,
+                        waveSpeed: 0.3,
+                        glitchIntensity: 0,
+                        glitchFrequency: 5,
+                        brightnessAdjust: 0.1,
+                        contrastAdjust: 1.2
+                    }
+                });
+                
+                // Load the stadium image as texture
+                // Try multiple possible paths
+                const possiblePaths = [
+                    'stadium_repair_dodge.png',
+                    './stadium_repair_dodge.png',
+                    '/stadium_repair_dodge.png',
+                    window.location.pathname.replace(/\/[^/]*$/, '/') + 'stadium_repair_dodge.png'
+                ];
+                
+                const img = document.getElementById('stadiumImage');
+                if (img && img.src) {
+                    // Use the img src if available
+                    console.log('renderVisualizer: Loading texture from img src:', img.src);
+                    asciiVisualizer.loadTexture(img.src);
+                } else {
+                    // Try the first path
+                    console.log('renderVisualizer: Loading texture from:', possiblePaths[0]);
+                    asciiVisualizer.loadTexture(possiblePaths[0]);
+                }
+            } else {
+                console.log('renderVisualizer: Visualizer already initialized');
+                // Force size update in case container changed
+                if (asciiVisualizer && typeof asciiVisualizer.updateSize === 'function') {
+                    setTimeout(() => {
+                        asciiVisualizer.updateSize();
+                    }, 100);
+                }
+            }
         }
 
         function drawNodeMarkers() {}
@@ -6842,6 +7035,13 @@
                 body.classList.remove('visualizer-only');
                 isoContainer.classList.remove('visible');
                 toggle.textContent = 'VIEW VISUALIZER';
+                
+                // Cleanup visualizer
+                if (asciiVisualizer) {
+                    asciiVisualizer.dispose();
+                    asciiVisualizer = null;
+                }
+                
                 refreshStageIndicator();
             }
         }
