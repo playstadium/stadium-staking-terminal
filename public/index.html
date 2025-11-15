@@ -2206,6 +2206,10 @@
             #metricModal .modal-body {
                 padding: 20px;
             }
+
+            .visualizer-nav {
+                display: none !important;
+            }
         }
 
         .node-detail-item {
@@ -2407,7 +2411,7 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            z-index: 200;
+            z-index: 9999;
             background: var(--base-light);
             border: 1px solid var(--border);
             color: var(--text-primary);
@@ -2420,6 +2424,7 @@
             letter-spacing: 0.5px;
             transition: all 0.2s ease;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
         }
 
         .visualizer-toggle:hover {
@@ -2443,27 +2448,35 @@
                 border-right: none;
                 border-bottom: 1px solid var(--border);
                 height: 100vh;
+                min-height: 100vh;
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
+                bottom: 0;
                 z-index: 50;
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
+                display: block;
+                align-items: stretch;
+                justify-content: stretch;
             }
 
             .iso-container .stadium-image-container {
-                height: 100vh;
+                height: 100vh !important;
+                min-height: 100vh !important;
                 width: 100%;
                 position: absolute;
                 top: 0;
                 left: 0;
+                bottom: 0;
             }
 
             .iso-container .stadium-image-container canvas {
                 height: 100vh !important;
+                min-height: 100vh !important;
                 width: 100% !important;
-                max-height: 100vh;
+                max-height: none !important;
                 object-fit: contain;
             }
 
@@ -2478,15 +2491,18 @@
             }
 
             .visualizer-toggle {
-                display: block;
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                z-index: 200;
+                display: block !important;
+                position: fixed !important;
+                bottom: 20px !important;
+                right: 20px !important;
+                z-index: 9999 !important;
+                pointer-events: auto !important;
             }
 
-            .visualizer-nav {
-                display: none;
+            .visualizer-nav,
+            .visualizer-nav-button {
+                display: none !important;
+                visibility: hidden !important;
             }
 
             .chart-toggle {
@@ -2507,6 +2523,19 @@
 
             body.visualizer-only .iso-container {
                 transform: translateX(0);
+                height: 100vh;
+                min-height: 100vh;
+            }
+
+            body.visualizer-only .iso-container .stadium-image-container {
+                height: 100vh !important;
+                min-height: 100vh !important;
+            }
+
+            body.visualizer-only .iso-container .stadium-image-container canvas {
+                height: 100vh !important;
+                min-height: 100vh !important;
+                max-height: none !important;
             }
 
             body.visualizer-only .stadium-stage-indicator {
