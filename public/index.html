@@ -1935,6 +1935,11 @@
                 width: 220px;
                 padding: 14px 16px;
             }
+            
+            /* Hide visualizer nav on tablet and below */
+            .visualizer-nav {
+                display: none !important;
+            }
         }
 
         @media (max-width: 768px) {
@@ -2194,6 +2199,14 @@
         }
 
         @media (max-width: 480px) {
+            /* Ensure visualizer fills screen on small mobile */
+            body.visualizer-only .iso-container,
+            body.visualizer-only .stadium-image-container,
+            body.visualizer-only .stadium-image-container canvas {
+                width: 100vw !important;
+                height: 100vh !important;
+            }
+            
             #metricModal .modal {
                 width: calc(100% - 20px);
                 max-width: calc(100% - 20px);
@@ -2407,7 +2420,7 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            z-index: 100;
+            z-index: 9999;
             background: var(--base-light);
             border: 1px solid var(--border);
             color: var(--text-primary);
@@ -2443,10 +2456,12 @@
                 border-right: none;
                 border-bottom: 1px solid var(--border);
                 height: 100vh;
+                width: 100vw;
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
+                bottom: 0;
                 z-index: 50;
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
@@ -2454,6 +2469,61 @@
 
             .iso-container.visible {
                 transform: translateX(0);
+                width: 100vw !important;
+                height: 100vh !important;
+            }
+            
+            /* Remove any body/html constraints in visualizer-only mode */
+            body.visualizer-only {
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+            
+            body.visualizer-only html {
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+            
+            body.visualizer-only .iso-container {
+                width: 100vw !important;
+                height: 100vh !important;
+                left: 0 !important;
+                right: 0 !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                transform: translateX(0) !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100vw !important;
+                max-height: 100vh !important;
+            }
+            
+            body.visualizer-only .stadium-image-container {
+                width: 100vw !important;
+                height: 100vh !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100vw !important;
+                max-height: 100vh !important;
+            }
+            
+            body.visualizer-only .stadium-image-container canvas {
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: 100vw !important;
+                max-height: 100vh !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
             .data-panels {
@@ -2463,11 +2533,18 @@
             }
 
             .visualizer-toggle {
-                display: block;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
             }
 
             .chart-toggle {
                 display: none;
+            }
+            
+            /* Hide desktop visualizer nav on mobile */
+            .visualizer-nav {
+                display: none !important;
             }
 
             body.visualizer-only {
@@ -2491,6 +2568,9 @@
             }
 
             body.visualizer-only .visualizer-toggle {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
                 background: rgba(17, 25, 32, 0.95);
                 border-color: rgba(118, 246, 255, 0.45);
                 color: #76f6ff;
@@ -2693,11 +2773,6 @@
             </div>
         </div>
 
-        <!-- Mobile Visualizer Toggle -->
-        <button class="visualizer-toggle" id="visualizerToggle" onclick="toggleVisualizer()">
-            VIEW VISUALIZER
-        </button>
-
         <!-- Right: Data Panels -->
         <div class="data-panels">
             <div class="header-section section-border-bottom">
@@ -2892,6 +2967,11 @@
         <canvas class="synd-tooltip-chart" id="syndTooltipChart"></canvas>
         <div class="synd-tooltip-description">Native token of the Syndicate Network, used for staking and governance.</div>
     </div>
+
+    <!-- Mobile Visualizer Toggle - Outside container to ensure it's always on top -->
+    <button class="visualizer-toggle" id="visualizerToggle" onclick="toggleVisualizer()">
+        VIEW VISUALIZER
+    </button>
 
     <!-- SYND Bottom Sheet -->
     <div class="synd-bottom-sheet-overlay" id="syndBottomSheetOverlay"></div>
@@ -5295,9 +5375,9 @@
                     postfx: {
                         scanlineIntensity: 0,
                         scanlineCount: 300,
-                        targetFPS: 1,
-                        jitterIntensity: 0,
-                        jitterSpeed: 2,
+                        targetFPS: 0, // 0 = off
+                        jitterIntensity: 0.22,
+                        jitterSpeed: 10.0,
                         mouseGlowEnabled: false,
                         mouseGlowRadius: 200,
                         mouseGlowIntensity: 1.5,
@@ -5309,8 +5389,8 @@
                         noiseIntensity: 0,
                         noiseScale: 2,
                         noiseSpeed: 1,
-                        waveAmplitude: 0,
-                        waveFrequency: 1,
+                        waveAmplitude: 0.000,
+                        waveFrequency: 20,
                         waveSpeed: 0.3,
                         glitchIntensity: 0,
                         glitchFrequency: 5,
@@ -5340,11 +5420,15 @@
                 }
             } else {
                 console.log('renderVisualizer: Visualizer already initialized');
-                // Force size update in case container changed
+                // Force size update in case container changed (especially on mobile toggle)
                 if (asciiVisualizer && typeof asciiVisualizer.updateSize === 'function') {
+                    // Multiple updates to catch any timing issues with DOM updates
                     setTimeout(() => {
                         asciiVisualizer.updateSize();
-                    }, 100);
+                    }, 50);
+                    setTimeout(() => {
+                        asciiVisualizer.updateSize();
+                    }, 200);
                 }
             }
         }
@@ -7030,11 +7114,58 @@
                 body.classList.add('visualizer-only');
                 isoContainer.classList.add('visible');
                 toggle.textContent = 'VIEW DASHBOARD';
-                renderVisualizer();
+                
+                // Force container to viewport size immediately
+                const container = document.querySelector('.stadium-image-container');
+                if (container) {
+                    container.style.width = window.innerWidth + 'px';
+                    container.style.height = window.innerHeight + 'px';
+                    container.style.maxWidth = window.innerWidth + 'px';
+                    container.style.maxHeight = window.innerHeight + 'px';
+                }
+                if (isoContainer) {
+                    isoContainer.style.width = window.innerWidth + 'px';
+                    isoContainer.style.height = window.innerHeight + 'px';
+                    isoContainer.style.maxWidth = window.innerWidth + 'px';
+                    isoContainer.style.maxHeight = window.innerHeight + 'px';
+                }
+                
+                // Small delay to ensure DOM has updated before rendering
+                setTimeout(() => {
+                    renderVisualizer();
+                    // Force size update after delays to ensure container has correct dimensions and quad is updated
+                    if (asciiVisualizer && typeof asciiVisualizer.updateSize === 'function') {
+                        // Multiple updates to catch any timing issues with DOM updates and quad geometry
+                        setTimeout(() => {
+                            asciiVisualizer.updateSize();
+                        }, 50);
+                        setTimeout(() => {
+                            asciiVisualizer.updateSize();
+                        }, 150);
+                        setTimeout(() => {
+                            asciiVisualizer.updateSize();
+                        }, 300);
+                    }
+                }, 50);
             } else {
                 body.classList.remove('visualizer-only');
                 isoContainer.classList.remove('visible');
                 toggle.textContent = 'VIEW VISUALIZER';
+                
+                // Reset container styles
+                const container = document.querySelector('.stadium-image-container');
+                if (container) {
+                    container.style.width = '';
+                    container.style.height = '';
+                    container.style.maxWidth = '';
+                    container.style.maxHeight = '';
+                }
+                if (isoContainer) {
+                    isoContainer.style.width = '';
+                    isoContainer.style.height = '';
+                    isoContainer.style.maxWidth = '';
+                    isoContainer.style.maxHeight = '';
+                }
                 
                 // Cleanup visualizer
                 if (asciiVisualizer) {
@@ -7047,14 +7178,42 @@
         }
 
         // Handle window resize
+        let visualizerResizeTimeout;
         window.addEventListener('resize', () => {
+            // Keep visualizer at viewport size when active
+            if (document.body.classList.contains('visualizer-only')) {
+                clearTimeout(visualizerResizeTimeout);
+                visualizerResizeTimeout = setTimeout(() => {
+                    const container = document.querySelector('.stadium-image-container');
+                    if (container) {
+                        container.style.width = window.innerWidth + 'px';
+                        container.style.height = window.innerHeight + 'px';
+                        container.style.maxWidth = window.innerWidth + 'px';
+                        container.style.maxHeight = window.innerHeight + 'px';
+                    }
+                    if (isoContainer) {
+                        isoContainer.style.width = window.innerWidth + 'px';
+                        isoContainer.style.height = window.innerHeight + 'px';
+                        isoContainer.style.maxWidth = window.innerWidth + 'px';
+                        isoContainer.style.maxHeight = window.innerHeight + 'px';
+                    }
+                    if (asciiVisualizer && typeof asciiVisualizer.updateSize === 'function') {
+                        // Update multiple times to ensure quad geometry is correct after resize
+                        asciiVisualizer.updateSize();
+                        setTimeout(() => {
+                            asciiVisualizer.updateSize();
+                        }, 50);
+                    }
+                }, 100);
+            }
+            
             if (window.innerWidth > 768) {
                 document.body.classList.remove('visualizer-only');
                 isoContainer.classList.remove('visible');
                 const toggle = document.getElementById('visualizerToggle');
                 if (toggle) {
                     toggle.textContent = 'VIEW VISUALIZER';
-            }
+                }
             }
             renderVisualizer();
         });

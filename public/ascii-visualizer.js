@@ -129,11 +129,11 @@ class AsciiVisualizer {
     }, 100);
 
     // Create a fullscreen quad to apply the effect to
-    // Scale the quad to match the camera aspect ratio so it fills the entire viewport
-    // For OrthographicCamera, we need the quad to match the camera bounds
-    const quadWidth = 2 * initialAspect; // Scale horizontally to match aspect
-    const quadHeight = 2; // Keep vertical at 2 units
-    const geometry = new THREE.PlaneGeometry(quadWidth, quadHeight);
+    // The quad must match the camera bounds exactly to fill the entire viewport
+    // For OrthographicCamera, calculate quad dimensions from camera bounds
+    const cameraWidth = right - left;
+    const cameraHeight = top - bottom;
+    const geometry = new THREE.PlaneGeometry(cameraWidth, cameraHeight);
     const material = new THREE.ShaderMaterial({
       uniforms: this.createUniforms(),
       vertexShader: this.getVertexShader(),
@@ -316,22 +316,31 @@ class AsciiVisualizer {
         // vUv goes from 0 to 1 across the entire quad
         vec2 uv = vUv;
         
-        // Adjust UV to stretch texture horizontally to fill canvas width
-        // This prevents squishing when canvas aspect ratio is wider than texture
+        // Adjust UV to maintain texture aspect ratio while filling the canvas
+        // This prevents stretching/squishing in both portrait and landscape orientations
         vec2 workUV = uv;
         
         if (uTextureLoaded && uTextureAspect > 0.0 && uCanvasAspect > 0.0) {
-          float aspectRatio = uCanvasAspect / uTextureAspect;
+          // Fit texture to canvas while maintaining aspect ratio
+          // Use "cover" mode: fill canvas, crop excess to maintain aspect
           
-          if (aspectRatio > 1.0) {
-            // Canvas is wider than texture - stretch horizontally to fill width
-            // Center the texture and stretch it horizontally
-            workUV.x = (uv.x - 0.5) * aspectRatio + 0.5;
-            // Clamp to valid texture range to prevent sampling outside bounds
+          float canvasAspect = uCanvasAspect;
+          float textureAspect = uTextureAspect;
+          float ratio = canvasAspect / textureAspect;
+          
+          if (ratio > 1.0) {
+            // Canvas is wider - fill width, crop height (letterbox)
+            // Sample more of texture horizontally, less vertically
+            workUV.x = uv.x; // Use full width
+            workUV.y = (uv.y - 0.5) / ratio + 0.5; // Crop vertically (zoom in)
+            workUV.y = clamp(workUV.y, 0.0, 1.0);
+          } else {
+            // Canvas is taller - fill height, crop width (pillarbox)
+            // Sample more of texture vertically, less horizontally  
+            workUV.x = (uv.x - 0.5) * ratio + 0.5; // Crop horizontally (zoom in)
             workUV.x = clamp(workUV.x, 0.0, 1.0);
-            // Keep vertical as-is (will crop top/bottom slightly, but fills width)
+            workUV.y = uv.y; // Use full height
           }
-          // If canvas is taller, keep as-is (fills height naturally)
         }
 
         // Screen curvature
@@ -457,29 +466,79 @@ class AsciiVisualizer {
   updateSize() {
     if (!this.renderer || !this.container) return;
     
-    // Get container size in CSS pixels
-    const rect = this.container.getBoundingClientRect();
-    const cssWidth = rect.width || this.container.offsetWidth || 0;
-    const cssHeight = rect.height || this.container.offsetHeight || 0;
-
-    // If container has no size, try parent
-    let width = cssWidth;
-    let height = cssHeight;
-    if (width === 0 || height === 0) {
-      const parent = this.container.parentElement;
-      if (parent) {
-        const parentRect = parent.getBoundingClientRect();
-        width = parentRect.width || parent.offsetWidth || width;
-        height = parentRect.height || parent.offsetHeight || height;
+    // Check if we're in visualizer-only mode (mobile fullscreen) or on mobile
+    const isVisualizerOnly = document.body.classList.contains('visualizer-only');
+    const isMobile = window.innerWidth <= 768;
+    
+    let width, height;
+    
+    if (isVisualizerOnly || (isMobile && this.container.closest('.iso-container')?.classList.contains('visible'))) {
+      // Use full viewport dimensions when in visualizer-only mode or mobile
+      // Force viewport dimensions to ensure full screen
+      width = window.innerWidth;
+      height = window.innerHeight;
+      
+      // Force container to viewport size via inline styles
+      if (this.container && this.container.style) {
+        this.container.style.width = width + 'px';
+        this.container.style.height = height + 'px';
+        this.container.style.maxWidth = width + 'px';
+        this.container.style.maxHeight = height + 'px';
+        this.container.style.position = 'absolute';
+        this.container.style.top = '0';
+        this.container.style.left = '0';
+        this.container.style.right = '0';
+        this.container.style.bottom = '0';
       }
-    }
+      
+      // Also force parent iso-container if it exists
+      const isoContainer = this.container?.closest('.iso-container');
+      if (isoContainer && isoContainer.style) {
+        isoContainer.style.width = width + 'px';
+        isoContainer.style.height = height + 'px';
+        isoContainer.style.maxWidth = width + 'px';
+        isoContainer.style.maxHeight = height + 'px';
+      }
+      
+      // Double-check container is actually viewport size
+      const containerRect = this.container.getBoundingClientRect();
+      if (containerRect.width < width * 0.9 || containerRect.height < height * 0.9) {
+        console.warn('AsciiVisualizer: Container size mismatch after forcing. Container:', containerRect.width, 'x', containerRect.height, 'Viewport:', width, 'x', height);
+        // Force again after a brief delay
+        setTimeout(() => {
+          if (this.container && this.container.style) {
+            this.container.style.width = window.innerWidth + 'px';
+            this.container.style.height = window.innerHeight + 'px';
+          }
+        }, 10);
+      }
+      
+      console.log('AsciiVisualizer: Using viewport dimensions for mobile/visualizer-only:', width, 'x', height);
+    } else {
+      // Get container size in CSS pixels
+      const rect = this.container.getBoundingClientRect();
+      const cssWidth = rect.width || this.container.offsetWidth || 0;
+      const cssHeight = rect.height || this.container.offsetHeight || 0;
 
-    // Final fallback
-    if (width === 0 || width < 100) {
-      width = window.innerWidth * 0.6 || 800;
-    }
-    if (height === 0 || height < 100) {
-      height = window.innerHeight || 600;
+      // If container has no size, try parent
+      width = cssWidth;
+      height = cssHeight;
+      if (width === 0 || height === 0) {
+        const parent = this.container.parentElement;
+        if (parent) {
+          const parentRect = parent.getBoundingClientRect();
+          width = parentRect.width || parent.offsetWidth || width;
+          height = parentRect.height || parent.offsetHeight || height;
+        }
+      }
+
+      // Final fallback
+      if (width === 0 || width < 100) {
+        width = window.innerWidth * 0.6 || 800;
+      }
+      if (height === 0 || height < 100) {
+        height = window.innerHeight || 600;
+      }
     }
 
     // Ensure reasonable minimum
@@ -520,19 +579,53 @@ class AsciiVisualizer {
     // Set renderer size to actual pixel dimensions
     this.renderer.setSize(renderWidth, renderHeight, false); // false = don't update CSS
     
-    // Update quad geometry to match new aspect ratio
+    // Update quad geometry to match camera bounds exactly
+    // This is critical - the quad must match the camera bounds to fill the entire viewport
+    // For OrthographicCamera, the quad should match the camera's left/right and top/bottom bounds
     if (this.quadGeometry && this.quad) {
-      const newQuadWidth = 2 * aspect;
-      const newQuadHeight = 2;
-      // Dispose old geometry
-      this.quadGeometry.dispose();
-      // Create new geometry with correct aspect ratio
-      this.quadGeometry = new THREE.PlaneGeometry(newQuadWidth, newQuadHeight);
-      this.quad.geometry = this.quadGeometry;
+      // Calculate quad dimensions to match camera bounds
+      // Camera bounds: left to right (horizontal), bottom to top (vertical)
+      const cameraWidth = this.camera.right - this.camera.left;
+      const cameraHeight = this.camera.top - this.camera.bottom;
+      
+      const newQuadWidth = cameraWidth;  // Match camera horizontal span
+      const newQuadHeight = cameraHeight; // Match camera vertical span
+      
+      // Only update if dimensions have changed significantly (avoid unnecessary updates)
+      const currentQuadWidth = this.quadGeometry.parameters?.width || 0;
+      const currentQuadHeight = this.quadGeometry.parameters?.height || 0;
+      const widthChanged = Math.abs(currentQuadWidth - newQuadWidth) > 0.01;
+      const heightChanged = Math.abs(currentQuadHeight - newQuadHeight) > 0.01;
+      
+      if (widthChanged || heightChanged || !this.quadGeometry.parameters) {
+        // Dispose old geometry
+        this.quadGeometry.dispose();
+        // Create new geometry matching camera bounds exactly
+        this.quadGeometry = new THREE.PlaneGeometry(newQuadWidth, newQuadHeight);
+        this.quad.geometry = this.quadGeometry;
+        
+        // Ensure quad is centered at origin (camera is at origin looking down -Z)
+        this.quad.position.set(0, 0, 0);
+        
+        console.log('AsciiVisualizer: Quad geometry updated - width:', newQuadWidth.toFixed(3), 'height:', newQuadHeight.toFixed(3), '(matches camera bounds)');
+      }
+    } else if (!this.quadGeometry || !this.quad) {
+      // Recreate quad if it doesn't exist (shouldn't happen, but safety check)
+      console.warn('AsciiVisualizer: Quad or geometry missing, recreating...');
+      const cameraWidth = this.camera.right - this.camera.left;
+      const cameraHeight = this.camera.top - this.camera.bottom;
+      this.quadGeometry = new THREE.PlaneGeometry(cameraWidth, cameraHeight);
+      if (this.material) {
+        this.quad = new THREE.Mesh(this.quadGeometry, this.material);
+        this.quad.position.set(0, 0, 0);
+        this.scene.add(this.quad);
+      }
     }
     
-    console.log('AsciiVisualizer: Camera bounds - left:', this.camera.left, 'right:', this.camera.right, 'top:', this.camera.top, 'bottom:', this.camera.bottom);
-    console.log('AsciiVisualizer: Quad size - width:', 2 * aspect, 'height: 2');
+    const quadWidth = this.quadGeometry?.parameters?.width || (this.camera.right - this.camera.left);
+    const quadHeight = this.quadGeometry?.parameters?.height || (this.camera.top - this.camera.bottom);
+    console.log('AsciiVisualizer: Camera bounds - left:', this.camera.left.toFixed(3), 'right:', this.camera.right.toFixed(3), 'top:', this.camera.top.toFixed(3), 'bottom:', this.camera.bottom.toFixed(3));
+    console.log('AsciiVisualizer: Quad size - width:', quadWidth.toFixed(3), 'height:', quadHeight.toFixed(3), '(aspect:', aspect.toFixed(3) + ')');
 
     if (this.material && this.material.uniforms) {
       // Use CSS dimensions for resolution uniform (for shader calculations)
