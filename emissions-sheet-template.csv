@@ -1,0 +1,51 @@
+Stadium Chain Emissions Calculator Template
+,,,,,
+,,,,,
+CONFIGURATION,,,,,
+Parameter,Value,Description,,
+Total Emission/Epoch,1666667,SYND tokens per epoch,,
+Epoch Duration (Days),30,Number of days per epoch,,
+Appchain Pool Share,0.40,40% of total emissions,,
+Performance Pool Share,0.30,30% of total emissions,,
+Base Pool Share,0.30,30% of total emissions,,
+SYND Price (USD),0.10,Current SYND price,,
+,,,,,
+CURRENT STATE,,,,,
+Metric,Value,Formula/Notes,,
+Current Stadium Stake (SYND),50000,Enter current stake,,
+Total Network Stake (SYND),1000000,Enter total network stake,,
+Stadium Stake Share (%),=B13/B14*100,Calculated automatically,,
+Transactions per Day,220,Stadium transaction volume,,
+Fee per Transaction (USD),0.5,Average fee per transaction,,
+Network Fees per Day (USD),10000,Total network fees,,
+,,,,,
+SIMULATION INPUTS,,,,,
+Scenario Name,Additional Stake (SYND),Transactions/Day,Fee/Transaction (USD),Network Fees/Day (USD)
+Baseline,0,220,0.5,10000
++50K SYND,50000,220,0.5,10000
++100K SYND,100000,220,0.5,10000
++200K SYND,200000,220,0.5,10000
+High Activity,0,500,0.5,20000
+High Activity +50K,50000,500,0.5,20000
+,,,,,
+EMISSION RESULTS (Use SIMULATE_EMISSIONS function),,,,,
+Scenario,Total Emission/Epoch (SYND),Total Emission/Day (SYND),Total USD/Epoch,Total USD/Day
+Baseline,=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).totalEmissionPerEpoch,=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).totalEmissionPerDay,=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).totalEpochUSD,=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).totalDayUSD
++50K SYND,=SIMULATE_EMISSIONS(B24,C13,C14,C25,D25,E25,B5,B7,B8,B6,B9).totalEmissionPerEpoch,=SIMULATE_EMISSIONS(B24,C13,C14,C25,D25,E25,B5,B7,B8,B6,B9).totalEmissionPerDay,=SIMULATE_EMISSIONS(B24,C13,C14,C25,D25,E25,B5,B7,B8,B6,B9).totalEpochUSD,=SIMULATE_EMISSIONS(B24,C13,C14,C25,D25,E25,B5,B7,B8,B6,B9).totalDayUSD
++100K SYND,=SIMULATE_EMISSIONS(B25,C13,C14,C26,D26,E26,B5,B7,B8,B6,B9).totalEmissionPerEpoch,=SIMULATE_EMISSIONS(B25,C13,C14,C26,D26,E26,B5,B7,B8,B6,B9).totalEmissionPerDay,=SIMULATE_EMISSIONS(B25,C13,C14,C26,D26,E26,B5,B7,B8,B6,B9).totalEpochUSD,=SIMULATE_EMISSIONS(B25,C13,C14,C26,D26,E26,B5,B7,B8,B6,B9).totalEpochUSD
++200K SYND,=SIMULATE_EMISSIONS(B26,C13,C14,C27,D27,E27,B5,B7,B8,B6,B9).totalEmissionPerEpoch,=SIMULATE_EMISSIONS(B26,C13,C14,C27,D27,E27,B5,B7,B8,B6,B9).totalEmissionPerDay,=SIMULATE_EMISSIONS(B26,C13,C14,C27,D27,E27,B5,B7,B8,B6,B9).totalEpochUSD,=SIMULATE_EMISSIONS(B26,C13,C14,C27,D27,E27,B5,B7,B8,B6,B9).totalDayUSD
+High Activity,=SIMULATE_EMISSIONS(B27,C13,C14,C28,D28,E28,B5,B7,B8,B6,B9).totalEmissionPerEpoch,=SIMULATE_EMISSIONS(B27,C13,C14,C28,D28,E28,B5,B7,B8,B6,B9).totalEmissionPerDay,=SIMULATE_EMISSIONS(B27,C13,C14,C28,D28,E28,B5,B7,B8,B6,B9).totalEpochUSD,=SIMULATE_EMISSIONS(B27,C13,C14,C28,D28,E28,B5,B7,B8,B6,B9).totalDayUSD
+High Activity +50K,=SIMULATE_EMISSIONS(B28,C13,C14,C29,D29,E29,B5,B7,B8,B6,B9).totalEmissionPerEpoch,=SIMULATE_EMISSIONS(B28,C13,C14,C29,D29,E29,B5,B7,B8,B6,B9).totalEmissionPerDay,=SIMULATE_EMISSIONS(B28,C13,C14,C29,D29,E29,B5,B7,B8,B6,B9).totalEpochUSD,=SIMULATE_EMISSIONS(B28,C13,C14,C29,D29,E29,B5,B7,B8,B6,B9).totalDayUSD
+,,,,,
+DETAILED BREAKDOWN (Example for Baseline scenario),,,,,
+Metric,Value,Formula,,
+Stake Share (%),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).stakeShare,,
+Fee Share (%),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).feeShare,,
+Performance Share (%),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).performanceShare,,
+Appchain Emission/Epoch (SYND),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).appchainEmissionPerEpoch,,
+Appchain Emission/Day (SYND),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).appchainEmissionPerDay,,
+Performance Emission/Epoch (SYND),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).performanceEmissionPerEpoch,,
+Performance Emission/Day (SYND),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).performanceEmissionPerDay,,
+Stadium Fees/Day (USD),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).stadiumFeesPerDayUSD,,
+Stadium Fees/Epoch (USD),=SIMULATE_EMISSIONS(B23,C13,C14,C24,D24,E24,B5,B7,B8,B6,B9).stadiumFeesPerEpochUSD,,
+
