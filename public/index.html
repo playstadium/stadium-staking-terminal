@@ -402,6 +402,20 @@
             margin-left: 20px;
         }
 
+        .epoch-link {
+            color: #569ACF;
+            text-decoration: underline;
+            text-decoration-color: #569ACF;
+            text-underline-offset: 4px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .epoch-link:hover {
+            color: #7BB3E0;
+            text-decoration-color: #7BB3E0;
+        }
+
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -2791,7 +2805,9 @@
                     <span class="status-indicator-square"></span>
                     <span class="status-text" id="statusText">staking operational</span>
                 </div>
-                <div class="epoch-info" id="epochInfo">epoch 1 - OCT 30 - NOV 29</div>
+                <div class="epoch-info" id="epochInfo">
+                    <span class="epoch-link" onclick="openEpoch1Modal()">epoch 1 - OCT 30 - NOV 29</span> · epoch 2 - NOV 29 - DEC 27
+                </div>
             </div>
 
             <!-- Loading State -->
@@ -3005,6 +3021,19 @@
                 <button class="modal-close" onclick="closeMetricModal()">CLOSE</button>
             </div>
             <div class="modal-body" id="metricModalBody">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Epoch 1 Summary Modal -->
+    <div class="modal-overlay" id="epoch1Modal" onclick="closeEpoch1Modal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">Epoch 1 Summary</div>
+                <button class="modal-close" onclick="closeEpoch1Modal()">CLOSE</button>
+            </div>
+            <div class="modal-body" id="epoch1ModalBody">
                 <!-- Populated dynamically -->
             </div>
         </div>
@@ -5557,26 +5586,12 @@
                 document.getElementById('goalLabel').textContent = 'NEXT GOAL: --';
             }
 
-            // Update epoch info
-            if (stats.emissions && stats.emissions.epochNumber) {
-                const epochNumber = stats.emissions.epochNumber;
-                // Calculate epoch dates (assuming epoch 1 starts Oct 30, 2024)
-                const epochStartDate = new Date('2024-10-30');
-                const epochDuration = stats.emissions.epochDurationDays || 30;
-                const currentEpochStart = new Date(epochStartDate);
-                currentEpochStart.setDate(epochStartDate.getDate() + (epochNumber - 1) * epochDuration);
-                const currentEpochEnd = new Date(currentEpochStart);
-                currentEpochEnd.setDate(currentEpochStart.getDate() + epochDuration);
-                
-                const startMonth = currentEpochStart.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-                const startDay = currentEpochStart.getDate();
-                const endMonth = currentEpochEnd.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-                const endDay = currentEpochEnd.getDate();
-                
-                const epochInfoEl = document.getElementById('epochInfo');
-                if (epochInfoEl) {
-                    epochInfoEl.textContent = `epoch ${epochNumber} - ${startMonth} ${startDay} - ${endMonth} ${endDay}`;
-                }
+            // Update epoch info - always show epoch 2 as current
+            const epochInfoEl = document.getElementById('epochInfo');
+            if (epochInfoEl) {
+                // Epoch 1: Oct 30 - Nov 29, 2024
+                // Epoch 2: Nov 29 - Dec 27, 2024
+                epochInfoEl.innerHTML = '<span class="epoch-link" onclick="openEpoch1Modal()">epoch 1 - OCT 30 - NOV 29</span> · epoch 2 - NOV 29 - DEC 27';
             }
             
             // Store all stakers for node details
@@ -7089,11 +7104,63 @@
             }
         }
 
+        // Epoch 1 Modal Functions
+        function openEpoch1Modal() {
+            const modal = document.getElementById('epoch1Modal');
+            const body = document.getElementById('epoch1ModalBody');
+            
+            // Get current stats for epoch 1 summary
+            // Note: In production, you would fetch epoch 1 historical data here
+            // For now, using current stats structure as template
+            const epoch1Data = {
+                totalStaked: currentStats?.stadium?.totalStaked || 0,
+                networkShare: currentStats?.stadium?.networkShare || 0,
+                totalEmissionsEarned: currentStats?.emissions?.stadiumEmissionPerEpoch || 0,
+                totalEmissionsEarnedUSD: currentStats?.emissions?.stadiumEmissionPerEpochUSD || 0
+            };
+            
+            body.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <div style="border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                        <div style="font-family: 'Geist Mono', monospace; font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">EPOCH PERIOD</div>
+                        <div style="font-family: 'Geist Mono', monospace; font-size: 18px; color: var(--text-primary);">OCT 30 - NOV 29, 2024</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                        <div style="border: 1px solid var(--border); padding: 20px; border-radius: 8px;">
+                            <div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Total Staked</div>
+                            <div style="font-family: 'Geist Mono', monospace; font-size: 24px; color: var(--text-primary); font-weight: 500;">${formatNumber(epoch1Data.totalStaked)} SYND</div>
+                        </div>
+                        
+                        <div style="border: 1px solid var(--border); padding: 20px; border-radius: 8px;">
+                            <div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Network Share</div>
+                            <div style="font-family: 'Geist Mono', monospace; font-size: 24px; color: var(--text-primary); font-weight: 500;">${typeof epoch1Data.networkShare === 'number' ? epoch1Data.networkShare.toFixed(2) : '0.00'}%</div>
+                        </div>
+                        
+                        <div style="border: 1px solid var(--border); padding: 20px; border-radius: 8px;">
+                            <div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Total Emissions Earned</div>
+                            <div style="font-family: 'Geist Mono', monospace; font-size: 24px; color: var(--text-primary); font-weight: 500; margin-bottom: 4px;">${formatNumber(epoch1Data.totalEmissionsEarned)} SYND</div>
+                            ${epoch1Data.totalEmissionsEarnedUSD > 0 ? `<div style="font-family: 'Geist Mono', monospace; font-size: 14px; color: var(--text-secondary);">${formatUSD(epoch1Data.totalEmissionsEarnedUSD)} USD</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('visible');
+        }
+
+        function closeEpoch1Modal(event) {
+            if (!event || event.target.id === 'epoch1Modal' || event.target.classList.contains('modal-close')) {
+                document.getElementById('epoch1Modal').classList.remove('visible');
+            }
+        }
+
         // Close modal on escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeNodeModal();
                 closeMetricModal();
+                closeEpoch1Modal();
                 // Also close visualizer on mobile
                 if (window.innerWidth <= 768) {
                     const isoContainer = document.querySelector('.iso-container');
